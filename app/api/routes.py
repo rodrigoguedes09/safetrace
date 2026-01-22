@@ -52,10 +52,10 @@ async def trace_transaction(
     """
     Trace transaction risk and generate compliance report.
     
-    **Authentication required:** Provide API key via Authorization header or X-API-Key header.
+    **Authentication required:** Provide API key via X-API-Key header.
 
-    - **tx_hash**: Transaction hash to analyze
-    - **chain**: Blockchain network (default: ethereum)
+    - **tx_hash**: Transaction hash to analyze (hex string, e.g., 0x123...)
+    - **chain**: Blockchain network (bitcoin, ethereum, etc.)
     - **depth**: Number of hops to trace (1-10, default: 3)
     """
     # Check rate limit

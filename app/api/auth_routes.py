@@ -286,11 +286,11 @@ async def get_usage_stats(
     rate_info = await rate_limit_service.check_rate_limit(user.id, user.is_premium)
     
     return {
-        "requests_today": rate_info.requests_today,
-        "total_requests": rate_info.requests_today,  # Placeholder - would need DB tracking
+        "requests_today": rate_info.requests_made,
+        "total_requests": rate_info.requests_made,
         "high_risk_count": 0,  # Placeholder - would need DB tracking
-        "daily_limit": rate_info.limit,
-        "remaining": rate_info.remaining
+        "daily_limit": rate_info.requests_limit,
+        "remaining": rate_info.requests_remaining
     }
 
 
