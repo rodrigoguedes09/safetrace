@@ -12,8 +12,10 @@ from fastapi.staticfiles import StaticFiles
 from app.api.dependencies import cleanup_dependencies, get_db_pool
 from app.api.routes import router
 from app.api.auth_routes import router as auth_router
+from app.api.auth_jwt_routes import router as auth_jwt_router
 from app.api.admin_routes import router as admin_router
 from app.api.frontend_routes import router as frontend_router
+from app.api.debug_routes import debug_router
 from app.config import get_settings
 from app.db.schema import init_auth_tables
 
@@ -83,7 +85,9 @@ def create_app() -> FastAPI:
     # Include API routes
     app.include_router(router)
     app.include_router(auth_router)
+    app.include_router(auth_jwt_router)  # Alternativa JWT (mais simples)
     app.include_router(admin_router)
+    app.include_router(debug_router)  # Debug endpoints
     
     # Include frontend routes (must be last to avoid conflicts)
     app.include_router(frontend_router)
