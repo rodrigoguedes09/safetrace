@@ -5,6 +5,32 @@
 
 let currentAnalysis = null;
 
+// Real transaction examples for testing
+const EXAMPLE_TRANSACTIONS = {
+    ethereum: '0x5c504ed432cb51138bcf09aa5e8a410dd4a1e204ef84bfed1be16dfba1b22060',
+    bitcoin: 'f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16',
+    'binance-smart-chain': '0x4d5e1b8f9e3c2a7e6f5d4c3b2a1e9f8d7c6b5a4e3d2c1b0a9f8e7d6c5b4a3e2d',
+    polygon: '0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b'
+};
+
+/**
+ * Use example transaction hash
+ */
+function useExampleTx(chain) {
+    const txHashInput = document.getElementById('tx-hash');
+    const chainSelect = document.getElementById('chain');
+    
+    // Set the chain
+    chainSelect.value = chain;
+    
+    // Set the example hash
+    const exampleHash = EXAMPLE_TRANSACTIONS[chain];
+    if (exampleHash) {
+        txHashInput.value = exampleHash;
+        showToast(`Loaded ${chain.charAt(0).toUpperCase() + chain.slice(1)} example transaction`, 'info');
+    }
+}
+
 /**
  * Handle analysis form submission
  */
@@ -82,6 +108,74 @@ function setAnalyzeLoading(loading) {
         btn.disabled = false;
         text.textContent = 'Analyze Transaction';
         spinner.classList.add('hidden');
+    }
+}
+
+/**
+ * Show analysis error
+ */
+function showAnalysisError(message) {
+    const errorSection = document.getElementById('error-section');
+    const errorMessage = document.getElementById('error-message');
+    
+    // Check if it's a "transaction not found" error
+    if (message.includes('not found')) {
+        errorMessage.innerHTML = `
+            <p class="mb-2">${message}</p>
+            <p class="text-sm text-gray-400 mt-4">
+                💡 <strong>Tip:</strong> Make sure you're using a real transaction hash from the selected blockchain.
+                Try the example buttons above for valid transactions.
+            </p>
+        `;
+    } else {
+        errorMessage.textContent = message;
+    }
+    
+    errorSection.classList.remove('hidden');
+    hideResults();
+}
+
+/**
+ * Hide error section
+ */
+function hideError() {
+    const errorSection = document.getElementById('error-section');
+    errorSection.classList.add('hidden');
+}
+
+/**
+ * Hide results section
+ */
+function hideResults() {
+    const resultsSection = document.getElementById('results-section');
+    resultsSection.classList.add('hidden');
+}
+
+/**
+ * Start new analysis
+ */
+function newAnalysis() {
+    hideResults();
+    hideError();
+    document.getElementById('tx-hash').value = '';
+    document.getElementById('tx-hash').focus();
+}
+
+/**
+ * Save analysis to history (localStorage)
+ */
+function saveToHistory(data) {
+    try {
+        const history = JSON.parse(localStorage.getItem('safetrace_history') || '[]');
+        history.unshift({
+            ...data,
+            timestamp: new Date().toISOString()
+        });
+        // Keep only last 10
+        if (history.length > 10) history.pop();
+        localStorage.setItem('safetrace_history', JSON.stringify(history));
+    } catch (e) {
+        console.error('Failed to save to history:', e);
     }
 }
 
@@ -166,71 +260,6 @@ function displayResults(data) {
     // Show results
     resultsSection.classList.remove('hidden');
     resultsSection.scrollIntoView({ behavior: 'smooth' });
-}
-
-/**
- * Hide results section
- */
-function hideResults() {
-    document.getElementById('results-section').classList.add('hidden');
-}
-
-/**
- * Show analysis error
- */
-function showAnalysisError(message) {
-    const errorSection = document.getElementById('error-section');
-    document.getElementById('error-message').textContent = message;
-    errorSection.classList.remove('hidden');
-    errorSection.scrollIntoView({ behavior: 'smooth' });
-}
-
-/**
- * Hide error section
- */
-function hideError() {
-    document.getElementById('error-section').classList.add('hidden');
-}
-
-/**
- * Start new analysis
- */
-function newAnalysis() {
-    currentAnalysis = null;
-    document.getElementById('analyze-form').reset();
-    document.getElementById('depth-value').textContent = '3';
-    hideResults();
-    hideError();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-/**
- * Save analysis to local history
- */
-function saveToHistory(data) {
-    try {
-        const history = JSON.parse(localStorage.getItem('safetrace_history') || '[]');
-        
-        const entry = {
-            id: Date.now(),
-            timestamp: new Date().toISOString(),
-            tx_hash: data.report.tx_hash,
-            chain: data.report.chain,
-            risk_score: data.report.risk_score.score,
-            risk_level: data.report.risk_score.level,
-            pdf_url: data.pdf_url
-        };
-        
-        // Add to beginning, keep last 50
-        history.unshift(entry);
-        if (history.length > 50) {
-            history.pop();
-        }
-        
-        localStorage.setItem('safetrace_history', JSON.stringify(history));
-    } catch (e) {
-        console.warn('Could not save to history:', e);
-    }
 }
 
 /**
