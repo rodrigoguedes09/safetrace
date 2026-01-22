@@ -104,50 +104,17 @@ async def get_current_user_jwt(credentials: HTTPAuthorizationCredentials = Depen
 async def register(user_data: UserRegister):
     """Registrar novo usuário."""
     try:
-        from app.api.dependencies import get_db_pool
+        from app.config.settings import get_settings
+        from app.db.postgresql import get_db_pool
         from app.services.auth_service import AuthService
         from app.models.auth import UserCreate
-        from app.config import get_settings
         
-        # Get database pool
+        # Get database pool and create service
         settings = get_settings()
         pool = await get_db_pool(settings)
-        
-        # Create auth service directly
         auth_service = AuthService(pool)
         
-        if not auth_service:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Auth service not available"
-            )
-        
-        # Validar senha
-        if len(user_data.password) < 8:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Password must be at least 8 characters"
-            )
-        
-        if not any(c.isupper() for c in user_data.password):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Password must contain at least one uppercase letter"
-            )
-        
-        if not any(c.islower() for c in user_data.password):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Password must contain at least one lowercase letter"
-            )
-        
-        if not any(c.isdigit() for c in user_data.password):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Password must contain at least one digit"
-            )
-        
-        # Criar usuário
+        # Criar usuário (validação acontece no Pydantic UserCreate)
         user_create = UserCreate(
             email=user_data.email,
             full_name=user_data.full_name,
