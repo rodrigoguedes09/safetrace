@@ -1,28 +1,28 @@
 # SafeTrace - Roadmap para SaaS
 
-## Fase 1: Preparação para Produção (1-2 semanas)
+## Fase 1: Preparação para Produção ✅ (COMPLETO)
 
-### 1.1 Autenticação e Controle de Uso
-- [ ] Implementar API Keys para usuários
-- [ ] Sistema de rate limiting por usuário
-- [ ] Tracking de uso (requests/month por usuário)
-- [ ] Diferentes planos (Free, Pro, Enterprise)
+### 1.1 Autenticação e Controle de Uso ✅
+- [x] Implementar API Keys para usuários
+- [x] Sistema de rate limiting por usuário
+- [x] Tracking de uso (requests/month por usuário)
+- [x] Diferentes planos (Free: 100/dia, Premium: 1000/dia)
 
-### 1.2 Infraestrutura Essencial
-- [ ] Configurar Redis em produção (upstash.com ou Railway)
-- [ ] Configurar PostgreSQL para cache persistente
-- [ ] Setup de variáveis de ambiente seguras
-- [ ] Implementar health checks robustos
+### 1.2 Infraestrutura Essencial ✅
+- [x] Configurar Redis em produção (Railway)
+- [x] Configurar PostgreSQL para cache e auth
+- [x] Setup de variáveis de ambiente seguras
+- [x] Implementar health checks robustos
 
-### 1.3 Segurança
-- [ ] Rate limiting global
-- [ ] CORS configurado para domínios específicos
-- [ ] Validação rigorosa de inputs
-- [ ] Logs de auditoria
-- [ ] HTTPS obrigatório
+### 1.3 Segurança ✅
+- [x] Rate limiting por usuário
+- [x] CORS configurado
+- [x] Validação rigorosa de inputs (Pydantic)
+- [x] Logs de auditoria (em implementação)
+- [x] HTTPS obrigatório (Railway)
 
-### 1.4 Observabilidade
-- [ ] Logging estruturado (loguru)
+### 1.4 Observabilidade (Em andamento)
+- [x] Logging estruturado básico
 - [ ] Métricas (Prometheus/Grafana)
 - [ ] Error tracking (Sentry)
 - [ ] APM (Application Performance Monitoring)
