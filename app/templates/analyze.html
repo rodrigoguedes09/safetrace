@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block title %}KYT Analysis - SafeTrace{% endblock %}
+
+{% block content %}
+<section class="py-20 relative min-h-screen">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <h1 class="text-3xl md:text-4xl font-bold mb-4">
+                Transaction <span class="text-primary-400">Risk Analysis</span>
+            </h1>
+            <p class="text-gray-400">
+                Enter a transaction hash to analyze its risk profile
+            </p>
+        </div>
+        
+        <!-- Analysis Form -->
+        <div class="glass-card rounded-2xl p-8 mb-8">
+            <form id="analyze-form" onsubmit="handleAnalysis(event)">
+                <!-- Transaction Hash -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium mb-2">Transaction Hash *</label>
+                    <input type="text" id="tx-hash" required 
+                        placeholder="0x7c9e8f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e"
+                        class="w-full bg-dark-800 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:border-primary-500 transition font-mono text-sm">
+                    <p class="text-xs text-gray-400 mt-1">The transaction hash to analyze</p>
+                </div>
+                
+                <!-- Chain Selection -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium mb-2">Blockchain Network *</label>
+                    <select id="chain" required 
+                        class="w-full bg-dark-800 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:border-primary-500 transition">
+                        <optgroup label="Popular">
+                            <option value="ethereum" selected>Ethereum (ETH)</option>
+                            <option value="bitcoin">Bitcoin (BTC)</option>
+                            <option value="binance-smart-chain">BNB Smart Chain (BSC)</option>
+                            <option value="polygon">Polygon (MATIC)</option>
+                            <option value="arbitrum">Arbitrum</option>
+                        </optgroup>
+                        <optgroup label="Layer 2">
+                            <option value="optimism">Optimism</option>
+                            <option value="base">Base</option>
+                            <option value="zksync">zkSync Era</option>
+                        </optgroup>
+                        <optgroup label="Other EVM">
+                            <option value="avalanche">Avalanche (AVAX)</option>
+                            <option value="fantom">Fantom (FTM)</option>
+                            <option value="gnosis">Gnosis Chain</option>
+                            <option value="moonbeam">Moonbeam</option>
+                        </optgroup>
+                        <optgroup label="Bitcoin-like">
+                            <option value="bitcoin-cash">Bitcoin Cash (BCH)</option>
+                            <option value="litecoin">Litecoin (LTC)</option>
+                            <option value="dogecoin">Dogecoin (DOGE)</option>
+                            <option value="dash">Dash</option>
+                            <option value="zcash">Zcash</option>
+                        </optgroup>
+                    </select>
+                </div>
+                
+                <!-- Trace Depth -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium mb-2">Trace Depth</label>
+                    <div class="flex items-center space-x-4">
+                        <input type="range" id="depth" min="1" max="10" value="3" 
+                            class="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                            oninput="document.getElementById('depth-value').textContent = this.value">
+                        <span id="depth-value" class="w-8 text-center font-bold text-primary-400">3</span>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-1">Number of hops to trace back (1-10). Higher = more thorough but slower.</p>
+                </div>
+                
+                <!-- Submit Button -->
+                <button type="submit" id="analyze-btn" class="w-full btn-primary text-lg py-4">
+                    <span id="analyze-btn-text">Analyze Transaction</span>
+                    <svg id="analyze-spinner" class="hidden animate-spin inline w-5 h-5 ml-2" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </button>
+            </form>
+            
+            <!-- Auth Required Notice -->
+            <div id="auth-notice" class="hidden mt-4 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                <p class="text-yellow-400 text-sm">
+                    <strong>Note:</strong> You need to be logged in to run analysis. 
+                    <button onclick="openAuthModal('login')" class="underline hover:text-yellow-300">Login</button> or 
+                    <button onclick="openAuthModal('register')" class="underline hover:text-yellow-300">Create an account</button> first.
+                </p>
+            </div>
+            
+            <!-- Free Trial Notice -->
+            <div id="free-notice" class="mt-4 p-4 bg-primary-500/10 border border-primary-500/30 rounded-lg">
+                <p class="text-primary-400 text-sm">
+                    ✨ <strong>First analysis is free!</strong> Create an account to get started.
+                </p>
+            </div>
+        </div>
+        
+        <!-- Results Section -->
+        <div id="results-section" class="hidden">
+            <div class="glass-card rounded-2xl p-8">
+                <h2 class="text-2xl font-bold mb-6">Analysis Results</h2>
+                
+                <!-- Risk Score Card -->
+                <div id="risk-card" class="mb-8">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-gray-400">Risk Score</span>
+                        <span id="risk-level-badge" class="px-3 py-1 rounded-full text-sm font-semibold">
+                            LOW
+                        </span>
+                    </div>
+                    <div class="relative h-4 bg-gray-700 rounded-full overflow-hidden">
+                        <div id="risk-bar" class="absolute h-full bg-green-500 transition-all duration-500" style="width: 15%"></div>
+                    </div>
+                    <div class="flex justify-between text-xs text-gray-400 mt-1">
+                        <span>0 - Safe</span>
+                        <span>50</span>
+                        <span>100 - Critical</span>
+                    </div>
+                    <p id="risk-score-value" class="text-center text-3xl font-bold mt-4">15/100</p>
+                </div>
+                
+                <!-- Risk Reasons -->
+                <div id="risk-reasons" class="mb-8">
+                    <h3 class="font-semibold mb-3">Analysis Details</h3>
+                    <ul id="reasons-list" class="space-y-2">
+                        <!-- Filled dynamically -->
+                    </ul>
+                </div>
+                
+                <!-- Flagged Entities -->
+                <div id="flagged-entities" class="mb-8 hidden">
+                    <h3 class="font-semibold mb-3 text-red-400">⚠️ Flagged Entities</h3>
+                    <div id="entities-list" class="space-y-2">
+                        <!-- Filled dynamically -->
+                    </div>
+                </div>
+                
+                <!-- Transaction Details -->
+                <div class="grid md:grid-cols-2 gap-4 mb-8">
+                    <div class="bg-dark-900 rounded-lg p-4">
+                        <span class="text-gray-400 text-sm">Transaction Hash</span>
+                        <p id="result-tx-hash" class="font-mono text-sm truncate"></p>
+                    </div>
+                    <div class="bg-dark-900 rounded-lg p-4">
+                        <span class="text-gray-400 text-sm">Chain</span>
+                        <p id="result-chain" class="capitalize"></p>
+                    </div>
+                    <div class="bg-dark-900 rounded-lg p-4">
+                        <span class="text-gray-400 text-sm">Addresses Analyzed</span>
+                        <p id="result-addresses"></p>
+                    </div>
+                    <div class="bg-dark-900 rounded-lg p-4">
+                        <span class="text-gray-400 text-sm">API Calls Used</span>
+                        <p id="result-api-calls"></p>
+                    </div>
+                </div>
+                
+                <!-- Download Button -->
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <a id="download-pdf-btn" href="#" target="_blank" 
+                        class="flex-1 btn-primary text-center">
+                        <svg class="inline w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        Download PDF Report
+                    </a>
+                    <button onclick="newAnalysis()" class="flex-1 btn-secondary">
+                        New Analysis
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Error Section -->
+        <div id="error-section" class="hidden">
+            <div class="glass-card rounded-2xl p-8 border-red-500/50">
+                <div class="text-center">
+                    <svg class="w-16 h-16 text-red-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                    <h3 class="text-xl font-semibold mb-2">Analysis Failed</h3>
+                    <p id="error-message" class="text-gray-400 mb-6"></p>
+                    <button onclick="newAnalysis()" class="btn-primary">
+                        Try Again
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="/static/js/analyze.js"></script>
+{% endblock %}

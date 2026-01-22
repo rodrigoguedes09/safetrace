@@ -2,10 +2,10 @@
 
 from typing import Annotated, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Header, status
+from fastapi import APIRouter, Depends, HTTPException, Header, Query, status
 
 from app.api.auth_middleware import get_current_user
-from app.api.dependencies import get_auth_service, get_rate_limit_service
+from app.api.dependencies import get_auth_service, get_rate_limit_service, get_history_service
 from app.models.auth import (
     APIKey,
     APIKeyCreate,
@@ -16,6 +16,7 @@ from app.models.auth import (
 )
 from app.services.auth_service import AuthService
 from app.services.rate_limit_service import RateLimitService
+from app.services.history_service import AnalysisHistoryService
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -235,3 +236,100 @@ async def get_rate_limit_status(
     """
     user, _ = user_and_key
     return await rate_limit_service.check_rate_limit(user.id, user.is_premium)
+
+
+@router.get(
+    "/usage",
+    summary="Get usage statistics",
+)
+async def get_usage_stats(
+    user_and_key: Annotated[tuple[User, APIKey], Depends(get_current_user)],
+    rate_limit_service: Annotated[
+        RateLimitService, Depends(get_rate_limit_service)
+    ],
+) -> dict:
+    """
+    Get usage statistics for the authenticated user.
+
+    Returns:
+    - requests_today: Number of requests made today
+    - total_requests: Total number of requests (estimated)
+    - high_risk_count: Number of high-risk analyses found
+    - daily_limit: User's daily limit
+    """
+    user, _ = user_and_key
+    rate_info = await rate_limit_service.check_rate_limit(user.id, user.is_premium)
+    
+    return {
+        "requests_today": rate_info.requests_today,
+        "total_requests": rate_info.requests_today,  # Placeholder - would need DB tracking
+        "high_risk_count": 0,  # Placeholder - would need DB tracking
+        "daily_limit": rate_info.limit,
+        "remaining": rate_info.remaining
+    }
+
+
+@router.get(
+    "/history",
+    summary="Get analysis history",
+)
+async def get_analysis_history(
+    user_and_key: Annotated[tuple[User, APIKey], Depends(get_current_user)],
+    history_service: Annotated[AnalysisHistoryService, Depends(get_history_service)],
+    limit: int = Query(default=50, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+) -> list[dict]:
+    """
+    Get the authenticated user's analysis history.
+    
+    Returns a list of previous analyses ordered by most recent first.
+    """
+    user, _ = user_and_key
+    return await history_service.get_user_history(user.id, limit, offset)
+
+
+@router.get(
+    "/history/stats",
+    summary="Get analysis statistics",
+)
+async def get_history_stats(
+    user_and_key: Annotated[tuple[User, APIKey], Depends(get_current_user)],
+    history_service: Annotated[AnalysisHistoryService, Depends(get_history_service)],
+) -> dict:
+    """
+    Get statistics about the user's analyses.
+    
+    Returns:
+    - total_analyses: Total number of analyses run
+    - high_risk_count: Number of analyses with risk > 50
+    - chains_analyzed: List of unique chains analyzed
+    - average_risk_score: Average risk score across all analyses
+    """
+    user, _ = user_and_key
+    return await history_service.get_user_stats(user.id)
+
+
+@router.get(
+    "/history/{analysis_id}",
+    summary="Get specific analysis",
+)
+async def get_analysis_detail(
+    analysis_id: int,
+    user_and_key: Annotated[tuple[User, APIKey], Depends(get_current_user)],
+    history_service: Annotated[AnalysisHistoryService, Depends(get_history_service)],
+) -> dict:
+    """
+    Get details of a specific analysis by ID.
+    
+    Only returns analyses owned by the authenticated user.
+    """
+    user, _ = user_and_key
+    result = await history_service.get_analysis_by_id(analysis_id, user.id)
+    
+    if not result:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Analysis not found",
+        )
+    
+    return result

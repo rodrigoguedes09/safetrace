@@ -29,17 +29,17 @@
 
 ## Fase 2: MVP em Produção (2-3 semanas)
 
-### 2.1 Landing Page + Documentação
-- [ ] Landing page explicando o produto
+### 2.1 Landing Page + Documentação ✅
+- [x] Landing page explicando o produto
 - [ ] Documentação técnica completa
 - [ ] Guias de uso e exemplos
-- [ ] Página de pricing
+- [x] Página de pricing
 
-### 2.2 Dashboard de Usuário
-- [ ] Portal para obter API Key
-- [ ] Dashboard de uso (requests, credits)
-- [ ] Histórico de análises
-- [ ] Download de relatórios anteriores
+### 2.2 Dashboard de Usuário ✅
+- [x] Portal para obter API Key
+- [x] Dashboard de uso (requests, credits)
+- [x] Histórico de análises
+- [x] Download de relatórios anteriores
 
 ### 2.3 Sistema de Pagamento
 - [ ] Integração Stripe/Paddle

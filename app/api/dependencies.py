@@ -18,6 +18,7 @@ from app.services.risk_scorer import RiskScorerService
 from app.services.tracer import TransactionTracerService
 from app.services.auth_service import AuthService
 from app.services.rate_limit_service import RateLimitService
+from app.services.history_service import AnalysisHistoryService
 
 
 _cache_instance: CacheBackend | None = None
@@ -25,6 +26,7 @@ _provider_instance: BlockchainProvider | None = None
 _db_pool: Optional[asyncpg.Pool] = None
 _auth_service: Optional[AuthService] = None
 _rate_limit_service: Optional[RateLimitService] = None
+_history_service: Optional[AnalysisHistoryService] = None
 
 
 async def get_db_pool(
@@ -131,9 +133,19 @@ def get_rate_limit_service() -> RateLimitService:
     return _rate_limit_service
 
 
+def get_history_service() -> AnalysisHistoryService:
+    """Get analysis history service instance."""
+    global _history_service, _db_pool
+    
+    if _history_service is None and _db_pool is not None:
+        _history_service = AnalysisHistoryService(_db_pool)
+    
+    return _history_service
+
+
 async def cleanup_dependencies() -> None:
     """Cleanup dependency instances on shutdown."""
-    global _cache_instance, _provider_instance, _db_pool, _auth_service, _rate_limit_service
+    global _cache_instance, _provider_instance, _db_pool, _auth_service, _rate_limit_service, _history_service
     
     if _cache_instance:
         await _cache_instance.close()
@@ -149,3 +161,4 @@ async def cleanup_dependencies() -> None:
     
     _auth_service = None
     _rate_limit_service = None
+    _history_service = None

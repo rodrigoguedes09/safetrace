@@ -54,6 +54,27 @@ CREATE INDEX IF NOT EXISTS idx_audit_logs_action ON audit_logs(action);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_timestamp ON audit_logs(timestamp DESC);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_api_key_id ON audit_logs(api_key_id);
 
+-- Analysis History table
+CREATE TABLE IF NOT EXISTS analysis_history (
+    id BIGSERIAL PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    tx_hash VARCHAR(255) NOT NULL,
+    chain VARCHAR(50) NOT NULL,
+    depth INTEGER NOT NULL DEFAULT 3,
+    risk_score INTEGER NOT NULL,
+    risk_level VARCHAR(20) NOT NULL,
+    flagged_entities JSONB,
+    total_addresses INTEGER,
+    api_calls_used INTEGER,
+    pdf_url TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_analysis_history_user_id ON analysis_history(user_id);
+CREATE INDEX IF NOT EXISTS idx_analysis_history_created_at ON analysis_history(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_analysis_history_tx_hash ON analysis_history(tx_hash);
+CREATE INDEX IF NOT EXISTS idx_analysis_history_risk_score ON analysis_history(risk_score);
+
 -- Trigger to update updated_at on users table
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$

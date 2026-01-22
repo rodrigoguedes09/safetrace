@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+
+{% block title %}Pricing - SafeTrace{% endblock %}
+
+{% block content %}
+<section class="py-20 relative min-h-screen">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4">
+                Simple, Transparent <span class="text-primary-400">Pricing</span>
+            </h1>
+            <p class="text-xl text-gray-400 max-w-2xl mx-auto">
+                Start free, scale as you grow. No hidden fees.
+            </p>
+        </div>
+        
+        <div class="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            <!-- Free Plan -->
+            <div class="glass-card rounded-2xl p-8 relative">
+                <div class="mb-6">
+                    <h3 class="text-xl font-semibold mb-2">Free</h3>
+                    <p class="text-gray-400">Perfect for getting started</p>
+                </div>
+                
+                <div class="mb-6">
+                    <span class="text-4xl font-bold">$0</span>
+                    <span class="text-gray-400">/month</span>
+                </div>
+                
+                <ul class="space-y-4 mb-8">
+                    <li class="flex items-center space-x-3">
+                        <svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        <span><strong>100</strong> API requests/day</span>
+                    </li>
+                    <li class="flex items-center space-x-3">
+                        <svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        <span>All 41+ blockchains</span>
+                    </li>
+                    <li class="flex items-center space-x-3">
+                        <svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        <span>Basic risk scoring</span>
+                    </li>
+                    <li class="flex items-center space-x-3">
+                        <svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        <span>PDF reports</span>
+                    </li>
+                    <li class="flex items-center space-x-3">
+                        <svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        <span>Max 3 hop depth</span>
+                    </li>
+                    <li class="flex items-center space-x-3 text-gray-500">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                        </svg>
+                        <span>No priority support</span>
+                    </li>
+                </ul>
+                
+                <a href="/analyze" class="block w-full text-center btn-secondary">
+                    Start Free
+                </a>
+            </div>
+            
+            <!-- Pro Plan -->
+            <div class="glass-card rounded-2xl p-8 relative border-2 border-primary-500 transform md:scale-105">
+                <div class="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                    <span class="bg-primary-500 text-white text-sm font-semibold px-4 py-1 rounded-full">
+                        Most Popular
+                    </span>
+                </div>
+                
+                <div class="mb-6">
+                    <h3 class="text-xl font-semibold mb-2">Pro</h3>
+                    <p class="text-gray-400">For growing businesses</p>
+                </div>
+                
+                <div class="mb-6">
+                    <span class="text-4xl font-bold">$49</span>
+                    <span class="text-gray-400">/month</span>
+                </div>
+                
+                <ul class="space-y-4 mb-8">
+                    <li class="flex items-center space-x-3">
+                        <svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        <span><strong>1,000</strong> API requests/day</span>
+                    </li>
+                    <li class="flex items-center space-x-3">
+                        <svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        <span>All 41+ blockchains</span>
+                    </li>
+                    <li class="flex items-center space-x-3">
+                        <svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        <span>Advanced risk scoring</span>
+                    </li>
+                    <li class="flex items-center space-x-3">
+                        <svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        <span>PDF + JSON reports</span>
+                    </li>
+                    <li class="flex items-center space-x-3">
+                        <svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        <span>Max 10 hop depth</span>
+                    </li>
+                    <li class="flex items-center space-x-3">
+                        <svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        <span>Email support</span>
+                    </li>
+                    <li class="flex items-center space-x-3">
+                        <svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        <span>Analysis history (90 days)</span>
+                    </li>
+                </ul>
+                
+                <a href="/analyze" class="block w-full text-center btn-primary glow">
+                    Get Started
+                </a>
+            </div>
+            
+            <!-- Enterprise Plan -->
+            <div class="glass-card rounded-2xl p-8 relative">
+                <div class="mb-6">
+                    <h3 class="text-xl font-semibold mb-2">Enterprise</h3>
+                    <p class="text-gray-400">For large organizations</p>
+                </div>
+                
+                <div class="mb-6">
+                    <span class="text-4xl font-bold">Custom</span>
+                </div>
+                
+                <ul class="space-y-4 mb-8">
+                    <li class="flex items-center space-x-3">
+                        <svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        <span><strong>Unlimited</strong> API requests</span>
+                    </li>
+                    <li class="flex items-center space-x-3">
+                        <svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        <span>All Pro features</span>
+                    </li>
+                    <li class="flex items-center space-x-3">
+                        <svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        <span>Dedicated account manager</span>
+                    </li>
+                    <li class="flex items-center space-x-3">
+                        <svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        <span>SLA guarantee</span>
+                    </li>
+                    <li class="flex items-center space-x-3">
+                        <svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        <span>Custom integrations</span>
+                    </li>
+                    <li class="flex items-center space-x-3">
+                        <svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        <span>On-premise deployment</span>
+                    </li>
+                    <li class="flex items-center space-x-3">
+                        <svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        <span>Unlimited history</span>
+                    </li>
+                </ul>
+                
+                <a href="mailto:enterprise@safetrace.io" class="block w-full text-center btn-secondary">
+                    Contact Sales
+                </a>
+            </div>
+        </div>
+        
+        <!-- FAQ Section -->
+        <div class="mt-20 max-w-3xl mx-auto">
+            <h2 class="text-2xl font-bold text-center mb-8">Frequently Asked Questions</h2>
+            
+            <div class="space-y-4">
+                <div class="glass-card rounded-xl p-6">
+                    <h3 class="font-semibold mb-2">What counts as an API request?</h3>
+                    <p class="text-gray-400">
+                        Each call to the /api/v1/compliance/trace endpoint counts as one request. 
+                        Cached results don't count against your limit.
+                    </p>
+                </div>
+                
+                <div class="glass-card rounded-xl p-6">
+                    <h3 class="font-semibold mb-2">Do unused requests roll over?</h3>
+                    <p class="text-gray-400">
+                        No, daily limits reset at midnight UTC. However, Pro plan users 
+                        have generous limits that should cover most use cases.
+                    </p>
+                </div>
+                
+                <div class="glass-card rounded-xl p-6">
+                    <h3 class="font-semibold mb-2">Can I upgrade or downgrade anytime?</h3>
+                    <p class="text-gray-400">
+                        Yes! You can change your plan at any time. Upgrades take effect immediately, 
+                        downgrades apply at the next billing cycle.
+                    </p>
+                </div>
+                
+                <div class="glass-card rounded-xl p-6">
+                    <h3 class="font-semibold mb-2">What payment methods do you accept?</h3>
+                    <p class="text-gray-400">
+                        We accept all major credit cards (Visa, MasterCard, American Express) 
+                        and can arrange invoicing for Enterprise customers.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

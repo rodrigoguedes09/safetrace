@@ -11,6 +11,7 @@ from app.api.dependencies import (
     get_cache_backend,
     get_pdf_generator,
     get_tracer_service,
+    get_history_service,
 )
 from app.api.auth_middleware import check_rate_limit, get_current_user
 from app.config import Settings, get_settings
@@ -27,6 +28,7 @@ from app.models.risk import HealthResponse, TraceRequest, TraceResponse
 from app.models.auth import User, APIKey
 from app.services.pdf_generator import PDFGeneratorService
 from app.services.tracer import TransactionTracerService
+from app.services.history_service import AnalysisHistoryService
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +47,7 @@ async def trace_transaction(
     pdf_generator: Annotated[PDFGeneratorService, Depends(get_pdf_generator)],
     settings: Annotated[Settings, Depends(get_settings)],
     user_and_key: Annotated[tuple[User, APIKey], Depends(get_current_user)],
+    history_service: Annotated[AnalysisHistoryService, Depends(get_history_service)],
 ) -> TraceResponse:
     """
     Trace transaction risk and generate compliance report.
@@ -83,6 +86,24 @@ async def trace_transaction(
         if file_path:
             filename = Path(file_path).name
             pdf_url = f"{settings.api_prefix}/compliance/download/{filename}"
+
+        # Save to history
+        try:
+            if history_service:
+                await history_service.save_analysis(
+                    user_id=user.id,
+                    tx_hash=request.tx_hash,
+                    chain=chain,
+                    depth=request.depth,
+                    risk_score=report.risk_score.score,
+                    risk_level=report.risk_score.level.value,
+                    flagged_entities=[e.dict() if hasattr(e, 'dict') else str(e) for e in report.flagged_entities] if report.flagged_entities else None,
+                    total_addresses=report.total_addresses_analyzed,
+                    api_calls_used=report.api_calls_used,
+                    pdf_url=pdf_url,
+                )
+        except Exception as e:
+            logger.warning(f"Failed to save analysis to history: {e}")
 
         return TraceResponse(
             success=True,
