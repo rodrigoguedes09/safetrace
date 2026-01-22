@@ -17,18 +17,28 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     """User creation model."""
 
-    password: str = Field(..., min_length=8, max_length=100)
+    password: str = Field(..., min_length=8, max_length=72, description="Password (8-72 characters)")
 
     @field_validator("password")
     @classmethod
     def validate_password(cls, v: str) -> str:
-        """Validate password strength."""
+        """Validate password strength and length."""
+        # Check byte length (bcrypt limit is 72 bytes)
+        if len(v.encode('utf-8')) > 72:
+            raise ValueError("Password cannot be longer than 72 bytes")
+        
+        if len(v) < 8:
+            raise ValueError("Password must be at least 8 characters")
+        
         if not any(c.isupper() for c in v):
             raise ValueError("Password must contain at least one uppercase letter")
+        
         if not any(c.islower() for c in v):
             raise ValueError("Password must contain at least one lowercase letter")
+        
         if not any(c.isdigit() for c in v):
             raise ValueError("Password must contain at least one digit")
+        
         return v
 
 

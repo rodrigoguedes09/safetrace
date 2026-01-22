@@ -131,8 +131,19 @@ function switchToLogin() {
 async function handleLogin(event) {
     event.preventDefault();
     
-    const email = document.getElementById('login-email').value;
+    const email = document.getElementById('login-email').value.trim();
     const password = document.getElementById('login-password').value;
+    
+    // Basic validation
+    if (!email || !password) {
+        showError('login-error', 'Please enter both email and password');
+        return;
+    }
+    
+    if (!email.includes('@')) {
+        showError('login-error', 'Please enter a valid email address');
+        return;
+    }
     
     try {
         // First, we need to get an API key using email/password
@@ -150,9 +161,20 @@ async function handleLogin(event) {
         
         if (!response.ok) {
             const error = await response.json();
-            const errorMessage = typeof error.detail === 'string' 
-                ? error.detail 
-                : (error.detail?.message || error.message || 'Login failed');
+            let errorMessage = 'Login failed';
+            
+            if (typeof error.detail === 'string') {
+                errorMessage = error.detail;
+            } else if (error.detail && typeof error.detail === 'object') {
+                if (Array.isArray(error.detail)) {
+                    errorMessage = error.detail.map(e => e.msg || e.message || e).join(', ');
+                } else {
+                    errorMessage = error.detail.message || JSON.stringify(error.detail);
+                }
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+            
             throw new Error(errorMessage);
         }
         
@@ -192,9 +214,47 @@ async function handleLogin(event) {
 async function handleRegister(event) {
     event.preventDefault();
     
-    const fullName = document.getElementById('register-name').value;
-    const email = document.getElementById('register-email').value;
+    const fullName = document.getElementById('register-name').value.trim();
+    const email = document.getElementById('register-email').value.trim();
     const password = document.getElementById('register-password').value;
+    
+    // Basic validation
+    if (!fullName || fullName.length < 2) {
+        showError('register-error', 'Full name must be at least 2 characters');
+        return;
+    }
+    
+    if (!email || !email.includes('@')) {
+        showError('register-error', 'Please enter a valid email address');
+        return;
+    }
+    
+    if (!password || password.length < 8) {
+        showError('register-error', 'Password must be at least 8 characters');
+        return;
+    }
+    
+    // Check password strength
+    if (!/[A-Z]/.test(password)) {
+        showError('register-error', 'Password must contain at least one uppercase letter');
+        return;
+    }
+    
+    if (!/[a-z]/.test(password)) {
+        showError('register-error', 'Password must contain at least one lowercase letter');
+        return;
+    }
+    
+    if (!/[0-9]/.test(password)) {
+        showError('register-error', 'Password must contain at least one digit');
+        return;
+    }
+    
+    // Check password byte length (bcrypt limit)
+    if (new Blob([password]).size > 72) {
+        showError('register-error', 'Password is too long (max 72 bytes)');
+        return;
+    }
     
     try {
         // Register user
@@ -212,9 +272,20 @@ async function handleRegister(event) {
         
         if (!registerResponse.ok) {
             const error = await registerResponse.json();
-            const errorMessage = typeof error.detail === 'string' 
-                ? error.detail 
-                : (error.detail?.message || error.message || 'Registration failed');
+            let errorMessage = 'Registration failed';
+            
+            if (typeof error.detail === 'string') {
+                errorMessage = error.detail;
+            } else if (error.detail && typeof error.detail === 'object') {
+                if (Array.isArray(error.detail)) {
+                    errorMessage = error.detail.map(e => e.msg || e.message || e).join(', ');
+                } else {
+                    errorMessage = error.detail.message || JSON.stringify(error.detail);
+                }
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+            
             throw new Error(errorMessage);
         }
         

@@ -36,15 +36,29 @@ async def register_user(
 
     - **email**: Valid email address (must be unique)
     - **full_name**: User's full name (2-100 characters)
-    - **password**: Strong password (min 8 chars, must include uppercase, lowercase, and digit)
+    - **password**: Strong password (8-72 chars, must include uppercase, lowercase, and digit)
     """
     try:
         user = await auth_service.create_user(user_data)
         return user
     except ValueError as e:
+        error_detail = str(e)
+        
+        # Map specific errors to appropriate status codes
+        if "already exists" in error_detail.lower():
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=error_detail,
+            )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=error_detail,
+            )
+    except Exception as e:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e),
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Registration failed: {str(e)}",
         )
 
 
@@ -70,41 +84,52 @@ async def bootstrap_api_key(
     - **password**: User's password
     - **key_data**: API key name and description
     """
-    # Verify user credentials
-    user_in_db = await auth_service.get_user_by_email(email)
-    if not user_in_db:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email or password",
+    try:
+        # Normalize email
+        email = email.lower().strip()
+        
+        # Verify user credentials
+        user_in_db = await auth_service.get_user_by_email(email)
+        if not user_in_db:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid email or password",
+            )
+
+        if not auth_service.verify_password(password, user_in_db.hashed_password):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid email or password",
+            )
+
+        if not user_in_db.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="User account is inactive",
+            )
+
+        # Create API key
+        api_key, plain_key = await auth_service.create_api_key(user_in_db.id, key_data)
+
+        return APIKeyResponse(
+            id=api_key.id,
+            user_id=api_key.user_id,
+            name=api_key.name,
+            description=api_key.description,
+            key_prefix=api_key.key_prefix,
+            is_active=api_key.is_active,
+            last_used_at=api_key.last_used_at,
+            created_at=api_key.created_at,
+            expires_at=api_key.expires_at,
+            key=plain_key,
         )
-
-    if not auth_service.verify_password(password, user_in_db.hashed_password):
+    except HTTPException:
+        raise
+    except Exception as e:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email or password",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to create API key: {str(e)}",
         )
-
-    if not user_in_db.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="User account is inactive",
-        )
-
-    # Create API key
-    api_key, plain_key = await auth_service.create_api_key(user_in_db.id, key_data)
-
-    return APIKeyResponse(
-        id=api_key.id,
-        user_id=api_key.user_id,
-        name=api_key.name,
-        description=api_key.description,
-        key_prefix=api_key.key_prefix,
-        is_active=api_key.is_active,
-        last_used_at=api_key.last_used_at,
-        created_at=api_key.created_at,
-        expires_at=api_key.expires_at,
-        key=plain_key,
-    )
 
 
 @router.post(

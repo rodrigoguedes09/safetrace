@@ -23,12 +23,23 @@ class AuthService:
     @staticmethod
     def hash_password(password: str) -> str:
         """Hash a password using bcrypt."""
+        # Truncate to 72 bytes if necessary (bcrypt limit)
+        password_bytes = password.encode('utf-8')
+        if len(password_bytes) > 72:
+            password = password_bytes[:72].decode('utf-8', errors='ignore')
         return pwd_context.hash(password)
 
     @staticmethod
     def verify_password(plain_password: str, hashed_password: str) -> bool:
         """Verify a password against its hash."""
-        return pwd_context.verify(plain_password, hashed_password)
+        try:
+            # Truncate to 72 bytes if necessary (bcrypt limit)
+            password_bytes = plain_password.encode('utf-8')
+            if len(password_bytes) > 72:
+                plain_password = password_bytes[:72].decode('utf-8', errors='ignore')
+            return pwd_context.verify(plain_password, hashed_password)
+        except Exception:
+            return False
 
     @staticmethod
     def generate_api_key() -> str:
@@ -47,33 +58,46 @@ class AuthService:
 
     async def create_user(self, user_data: UserCreate) -> User:
         """Create a new user."""
-        async with self.db_pool.acquire() as conn:
-            # Check if user exists
-            existing = await conn.fetchrow(
-                "SELECT id FROM users WHERE email = $1", user_data.email
-            )
-            if existing:
-                raise ValueError("User with this email already exists")
+        try:
+            async with self.db_pool.acquire() as conn:
+                # Check if user exists
+                existing = await conn.fetchrow(
+                    "SELECT id FROM users WHERE email = $1", user_data.email.lower().strip()
+                )
+                if existing:
+                    raise ValueError("User with this email already exists")
 
-            # Create user
-            hashed_password = self.hash_password(user_data.password)
-            row = await conn.fetchrow(
-                """
-                INSERT INTO users (email, full_name, hashed_password)
-                VALUES ($1, $2, $3)
-                RETURNING id, email, full_name, is_active, is_premium, created_at, updated_at
-                """,
-                user_data.email,
-                user_data.full_name,
-                hashed_password,
-            )
-            return User(**dict(row))
+                # Validate email format
+                if not user_data.email or '@' not in user_data.email:
+                    raise ValueError("Invalid email address")
+                
+                # Validate full name
+                if not user_data.full_name or len(user_data.full_name.strip()) < 2:
+                    raise ValueError("Full name must be at least 2 characters")
+
+                # Create user
+                hashed_password = self.hash_password(user_data.password)
+                row = await conn.fetchrow(
+                    """
+                    INSERT INTO users (email, full_name, hashed_password)
+                    VALUES ($1, $2, $3)
+                    RETURNING id, email, full_name, is_active, is_premium, created_at, updated_at
+                    """,
+                    user_data.email.lower().strip(),
+                    user_data.full_name.strip(),
+                    hashed_password,
+                )
+                return User(**dict(row))
+        except ValueError:
+            raise
+        except Exception as e:
+            raise ValueError(f"Failed to create user: {str(e)}")
 
     async def get_user_by_email(self, email: str) -> Optional[UserInDB]:
         """Get user by email."""
         async with self.db_pool.acquire() as conn:
             row = await conn.fetchrow(
-                "SELECT * FROM users WHERE email = $1", email
+                "SELECT * FROM users WHERE email = $1", email.lower().strip()
             )
             if not row:
                 return None
