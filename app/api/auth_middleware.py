@@ -3,7 +3,7 @@
 from typing import Optional
 from uuid import UUID
 
-from fastapi import Header, HTTPException, status
+from fastapi import Depends, Header, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from app.models.auth import User, APIKey
@@ -12,8 +12,8 @@ security = HTTPBearer(auto_error=False)
 
 
 async def get_current_user(
-    authorization: Optional[HTTPAuthorizationCredentials] = None,
-    x_api_key: Optional[str] = Header(None),
+    authorization: Optional[HTTPAuthorizationCredentials] = Depends(security),
+    x_api_key: Optional[str] = Header(None, alias="X-API-Key"),
 ) -> tuple[User, APIKey]:
     """
     Get current user from API key.
@@ -98,8 +98,8 @@ def get_optional_user() -> Optional[tuple[User, APIKey]]:
     """
 
     async def optional_user_dependency(
-        authorization: Optional[HTTPAuthorizationCredentials] = None,
-        x_api_key: Optional[str] = Header(None),
+        authorization: Optional[HTTPAuthorizationCredentials] = Depends(security),
+        x_api_key: Optional[str] = Header(None, alias="X-API-Key"),
     ) -> Optional[tuple[User, APIKey]]:
         if not authorization and not x_api_key:
             return None
