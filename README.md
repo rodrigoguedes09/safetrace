@@ -2,6 +2,30 @@
 
 A production-ready blockchain compliance tool for Know Your Transaction (KYT) analysis. Traces transaction risk across 41+ blockchains by analyzing fund origins and identifying proximity to high-risk entities.
 
+## 🚀 Quick Deploy to Railway
+
+**Ready to deploy?** This project is pre-configured for Railway:
+
+```bash
+# Option 1: Use the deploy script (Windows)
+deploy.bat
+
+# Option 2: Manual deployment
+git add .
+git commit -m "Railway deployment"
+git push origin main
+```
+
+Then:
+1. Go to [railway.app](https://railway.app)
+2. Deploy from your GitHub repo
+3. Add env vars: `BLOCKCHAIR_API_KEY` and `CACHE_BACKEND=memory`
+4. Done! 🎉
+
+**📖 Detailed Guide**: See [RAILWAY_DEPLOY.md](RAILWAY_DEPLOY.md)
+
+---
+
 ## Features
 
 - **Multi-Chain Support**: 41+ blockchains including Bitcoin, Ethereum, BSC, Polygon, and more
