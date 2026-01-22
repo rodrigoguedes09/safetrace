@@ -35,6 +35,10 @@ Then:
 - **PDF Compliance Certificates**: Professional-grade compliance documentation
 - **API Credit Optimization**: Intelligent caching to minimize API usage
 - **Async Architecture**: High-performance async-first design
+- **User Authentication**: Secure user registration and API key management
+- **Web Dashboard**: Modern web interface for KYT analysis and history
+- **Rate Limiting**: Tier-based rate limiting (Free: 100/day, Pro: 1000/day)
+- **Analysis History**: Track and review all past analyses
 
 ## Tech Stack
 

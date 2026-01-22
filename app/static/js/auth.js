@@ -150,7 +150,10 @@ async function handleLogin(event) {
         
         if (!response.ok) {
             const error = await response.json();
-            throw new Error(error.detail || 'Login failed');
+            const errorMessage = typeof error.detail === 'string' 
+                ? error.detail 
+                : (error.detail?.message || error.message || 'Login failed');
+            throw new Error(errorMessage);
         }
         
         const data = await response.json();
@@ -209,7 +212,10 @@ async function handleRegister(event) {
         
         if (!registerResponse.ok) {
             const error = await registerResponse.json();
-            throw new Error(error.detail || 'Registration failed');
+            const errorMessage = typeof error.detail === 'string' 
+                ? error.detail 
+                : (error.detail?.message || error.message || 'Registration failed');
+            throw new Error(errorMessage);
         }
         
         const userData = await registerResponse.json();
