@@ -9,8 +9,12 @@ from passlib.context import CryptContext
 
 from app.models.auth import APIKey, APIKeyCreate, User, UserCreate, UserInDB
 
-# Password hashing context
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Password hashing context - disabled truncate_error to handle long passwords
+pwd_context = CryptContext(
+    schemes=["bcrypt"],
+    deprecated="auto",
+    bcrypt__truncate_error=False  # Allow automatic truncation
+)
 
 
 class AuthService:

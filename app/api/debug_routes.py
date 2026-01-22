@@ -16,18 +16,20 @@ class TestRegister(BaseModel):
 
 @debug_router.post("/test-register")
 async def test_register(data: TestRegister):
-    """Endpoint de teste para registro."""
+    """Endpoint de teste para registro - VERSÃO 2.0 COM FIXES."""
     try:
         from app.api.dependencies import get_db_pool
         from app.services.auth_service import AuthService
         from app.models.auth import UserCreate
         from app.config import get_settings
         
+        print(f"DEBUG: Registrando usuário {data.email} com senha de {len(data.password)} chars")
+        
         # Get database pool
         settings = get_settings()
         pool = await get_db_pool(settings)
         
-        # Create auth service directly
+        # Create auth service directly (FIX: não usa async for)
         auth_service = AuthService(pool)
         
         if not auth_service:

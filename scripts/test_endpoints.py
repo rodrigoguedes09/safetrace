@@ -8,7 +8,8 @@ import httpx
 import sys
 
 # URL base (altere para seu domínio Railway após deploy)
-BASE_URL =  "https://safetrace.up.railway.app"
+# BASE_URL = "http://localhost:8001"  # Testando localmente
+BASE_URL = "https://safetrace.up.railway.app"  # Testando no Railway
 
 # Cores para output
 GREEN = '\033[92m'
