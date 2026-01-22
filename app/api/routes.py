@@ -2,7 +2,7 @@
 
 import logging
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import FileResponse, JSONResponse
@@ -12,6 +12,7 @@ from app.api.dependencies import (
     get_pdf_generator,
     get_tracer_service,
 )
+from app.api.auth_middleware import check_rate_limit, get_current_user
 from app.config import Settings, get_settings
 from app.constants import SUPPORTED_CHAINS
 from app.core.cache import CacheBackend
@@ -23,6 +24,7 @@ from app.core.exceptions import (
     UnsupportedChainError,
 )
 from app.models.risk import HealthResponse, TraceRequest, TraceResponse
+from app.models.auth import User, APIKey
 from app.services.pdf_generator import PDFGeneratorService
 from app.services.tracer import TransactionTracerService
 
@@ -42,14 +44,21 @@ async def trace_transaction(
     tracer: Annotated[TransactionTracerService, Depends(get_tracer_service)],
     pdf_generator: Annotated[PDFGeneratorService, Depends(get_pdf_generator)],
     settings: Annotated[Settings, Depends(get_settings)],
+    user_and_key: Annotated[tuple[User, APIKey], Depends(get_current_user)],
 ) -> TraceResponse:
     """
     Trace transaction risk and generate compliance report.
+    
+    **Authentication required:** Provide API key via Authorization header or X-API-Key header.
 
     - **tx_hash**: Transaction hash to analyze
     - **chain**: Blockchain network (default: ethereum)
     - **depth**: Number of hops to trace (1-10, default: 3)
     """
+    # Check rate limit
+    user, api_key = user_and_key
+    await check_rate_limit(user, api_key)
+    
     try:
         # Validate chain
         chain = request.chain.lower()

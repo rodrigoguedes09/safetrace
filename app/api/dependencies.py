@@ -1,9 +1,10 @@
 """Dependency injection for FastAPI."""
 
 from functools import lru_cache
-from typing import Annotated
+from typing import Annotated, Optional
 
 from fastapi import Depends
+import asyncpg
 
 from app.cache.memory import MemoryCacheBackend
 from app.cache.postgres import PostgresCacheBackend
@@ -15,10 +16,31 @@ from app.providers.blockchair import BlockchairProvider
 from app.services.pdf_generator import PDFGeneratorService
 from app.services.risk_scorer import RiskScorerService
 from app.services.tracer import TransactionTracerService
+from app.services.auth_service import AuthService
+from app.services.rate_limit_service import RateLimitService
 
 
 _cache_instance: CacheBackend | None = None
 _provider_instance: BlockchainProvider | None = None
+_db_pool: Optional[asyncpg.Pool] = None
+_auth_service: Optional[AuthService] = None
+_rate_limit_service: Optional[RateLimitService] = None
+
+
+async def get_db_pool(
+    settings: Annotated[Settings, Depends(get_settings)]
+) -> asyncpg.Pool:
+    """Get or create database connection pool."""
+    global _db_pool
+    
+    if _db_pool is None:
+        _db_pool = await asyncpg.create_pool(
+            dsn=settings.postgres_dsn,
+            min_size=2,
+            max_size=10,
+        )
+    
+    return _db_pool
 
 
 async def get_cache_backend(
@@ -89,9 +111,29 @@ async def get_tracer_service(
     )
 
 
+def get_auth_service() -> AuthService:
+    """Get authentication service instance."""
+    global _auth_service, _db_pool
+    
+    if _auth_service is None and _db_pool is not None:
+        _auth_service = AuthService(_db_pool)
+    
+    return _auth_service
+
+
+def get_rate_limit_service() -> RateLimitService:
+    """Get rate limiting service instance."""
+    global _rate_limit_service, _cache_instance
+    
+    if _rate_limit_service is None and _cache_instance is not None:
+        _rate_limit_service = RateLimitService(_cache_instance)
+    
+    return _rate_limit_service
+
+
 async def cleanup_dependencies() -> None:
     """Cleanup dependency instances on shutdown."""
-    global _cache_instance, _provider_instance
+    global _cache_instance, _provider_instance, _db_pool, _auth_service, _rate_limit_service
     
     if _cache_instance:
         await _cache_instance.close()
@@ -100,3 +142,10 @@ async def cleanup_dependencies() -> None:
     if _provider_instance:
         await _provider_instance.close()
         _provider_instance = None
+    
+    if _db_pool:
+        await _db_pool.close()
+        _db_pool = None
+    
+    _auth_service = None
+    _rate_limit_service = None

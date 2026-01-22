@@ -7,9 +7,11 @@ from typing import AsyncGenerator
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.dependencies import cleanup_dependencies
+from app.api.dependencies import cleanup_dependencies, get_db_pool
 from app.api.routes import router
+from app.api.auth_routes import router as auth_router
 from app.config import get_settings
+from app.db.schema import init_auth_tables
 
 # Configure logging
 logging.basicConfig(
@@ -26,6 +28,14 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info(f"Starting {settings.app_name} v{settings.app_version}")
     logger.info(f"Cache backend: {settings.cache_backend}")
     logger.info(f"Max trace depth: {settings.max_trace_depth}")
+    
+    # Initialize database tables
+    try:
+        db_pool = await get_db_pool(settings)
+        await init_auth_tables(db_pool)
+        logger.info("Database tables initialized")
+    except Exception as e:
+        logger.error(f"Failed to initialize database: {e}")
     
     yield
     
@@ -63,6 +73,7 @@ def create_app() -> FastAPI:
 
     # Include API routes
     app.include_router(router)
+    app.include_router(auth_router)
 
     @app.get("/", tags=["root"])
     async def root() -> dict[str, str]:
