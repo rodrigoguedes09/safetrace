@@ -18,14 +18,17 @@ class TestRegister(BaseModel):
 async def test_register(data: TestRegister):
     """Endpoint de teste para registro."""
     try:
-        from app.api.dependencies import get_auth_service
+        from app.api.dependencies import get_db_pool
+        from app.services.auth_service import AuthService
         from app.models.auth import UserCreate
+        from app.config import get_settings
         
-        # Get auth service
-        auth_service = None
-        async for service in get_auth_service():
-            auth_service = service
-            break
+        # Get database pool
+        settings = get_settings()
+        pool = await get_db_pool(settings)
+        
+        # Create auth service directly
+        auth_service = AuthService(pool)
         
         if not auth_service:
             return {"error": "Auth service not available"}
@@ -67,13 +70,16 @@ async def test_register(data: TestRegister):
 async def test_login(email: str, password: str):
     """Endpoint de teste para login."""
     try:
-        from app.api.dependencies import get_auth_service
+        from app.api.dependencies import get_db_pool
+        from app.services.auth_service import AuthService
+        from app.config import get_settings
         
-        # Get auth service
-        auth_service = None
-        async for service in get_auth_service():
-            auth_service = service
-            break
+        # Get database pool
+        settings = get_settings()
+        pool = await get_db_pool(settings)
+        
+        # Create auth service directly
+        auth_service = AuthService(pool)
         
         if not auth_service:
             return {"error": "Auth service not available"}

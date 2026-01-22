@@ -104,14 +104,17 @@ async def get_current_user_jwt(credentials: HTTPAuthorizationCredentials = Depen
 async def register(user_data: UserRegister):
     """Registrar novo usuário."""
     try:
-        from app.api.dependencies import get_auth_service
+        from app.api.dependencies import get_db_pool
+        from app.services.auth_service import AuthService
         from app.models.auth import UserCreate
+        from app.config import get_settings
         
-        # Get auth service
-        auth_service = None
-        async for service in get_auth_service():
-            auth_service = service
-            break
+        # Get database pool
+        settings = get_settings()
+        pool = await get_db_pool(settings)
+        
+        # Create auth service directly
+        auth_service = AuthService(pool)
         
         if not auth_service:
             raise HTTPException(
@@ -192,19 +195,14 @@ async def register(user_data: UserRegister):
 async def login(user_data: UserLogin):
     """Login de usuário."""
     try:
-        from app.api.dependencies import get_auth_service
+        from app.config.settings import get_settings
+        from app.db.postgresql import get_db_pool
+        from app.services.auth_service import AuthService
         
-        # Get auth service
-        auth_service = None
-        async for service in get_auth_service():
-            auth_service = service
-            break
-        
-        if not auth_service:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Auth service not available"
-            )
+        # Get database pool and create service
+        settings = get_settings()
+        pool = await get_db_pool(settings)
+        auth_service = AuthService(pool)
         
         # Buscar usuário
         user_in_db = await auth_service.get_user_by_email(user_data.email)
@@ -257,14 +255,15 @@ async def login(user_data: UserLogin):
 async def get_me(current_user: TokenData = Depends(get_current_user_jwt)):
     """Obter dados do usuário atual."""
     try:
-        from app.api.dependencies import get_auth_service
+        from app.config.settings import get_settings
+        from app.db.postgresql import get_db_pool
+        from app.services.auth_service import AuthService
         from uuid import UUID
         
-        # Get auth service
-        auth_service = None
-        async for service in get_auth_service():
-            auth_service = service
-            break
+        # Get database pool and create service
+        settings = get_settings()
+        pool = await get_db_pool(settings)
+        auth_service = AuthService(pool)
         
         user = await auth_service.get_user_by_id(UUID(current_user.user_id))
         
