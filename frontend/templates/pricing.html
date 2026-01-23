@@ -72,10 +72,10 @@
             </div>
             
             <!-- Pro Plan -->
-            <div class="glass-card rounded-2xl p-8 relative border-2 border-primary-500 transform md:scale-105">
-                <div class="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                    <span class="bg-primary-500 text-white text-sm font-semibold px-4 py-1 rounded-full">
-                        Most Popular
+            <div class="glass-card rounded-2xl p-8 relative border-2 border-gray-600 transform md:scale-105 opacity-50 blur-sm pointer-events-none">
+                <div class="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
+                    <span class="bg-gray-600 text-white text-sm font-semibold px-4 py-1 rounded-full blur-none">
+                        Coming Soon
                     </span>
                 </div>
                 
@@ -140,7 +140,12 @@
             </div>
             
             <!-- Enterprise Plan -->
-            <div class="glass-card rounded-2xl p-8 relative">
+            <div class="glass-card rounded-2xl p-8 relative opacity-50 blur-sm pointer-events-none">
+                <div class="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
+                    <span class="bg-gray-600 text-white text-sm font-semibold px-4 py-1 rounded-full blur-none">
+                        Coming Soon
+                    </span>
+                </div>
                 <div class="mb-6">
                     <h3 class="text-xl font-semibold mb-2">Enterprise</h3>
                     <p class="text-gray-400">For large organizations</p>
@@ -198,45 +203,6 @@
                 <a href="mailto:enterprise@safetrace.io" class="block w-full text-center btn-secondary">
                     Contact Sales
                 </a>
-            </div>
-        </div>
-        
-        <!-- FAQ Section -->
-        <div class="mt-20 max-w-3xl mx-auto">
-            <h2 class="text-2xl font-bold text-center mb-8">Frequently Asked Questions</h2>
-            
-            <div class="space-y-4">
-                <div class="glass-card rounded-xl p-6">
-                    <h3 class="font-semibold mb-2">What counts as an API request?</h3>
-                    <p class="text-gray-400">
-                        Each call to the /api/v1/compliance/trace endpoint counts as one request. 
-                        Cached results don't count against your limit.
-                    </p>
-                </div>
-                
-                <div class="glass-card rounded-xl p-6">
-                    <h3 class="font-semibold mb-2">Do unused requests roll over?</h3>
-                    <p class="text-gray-400">
-                        No, daily limits reset at midnight UTC. However, Pro plan users 
-                        have generous limits that should cover most use cases.
-                    </p>
-                </div>
-                
-                <div class="glass-card rounded-xl p-6">
-                    <h3 class="font-semibold mb-2">Can I upgrade or downgrade anytime?</h3>
-                    <p class="text-gray-400">
-                        Yes! You can change your plan at any time. Upgrades take effect immediately, 
-                        downgrades apply at the next billing cycle.
-                    </p>
-                </div>
-                
-                <div class="glass-card rounded-xl p-6">
-                    <h3 class="font-semibold mb-2">What payment methods do you accept?</h3>
-                    <p class="text-gray-400">
-                        We accept all major credit cards (Visa, MasterCard, American Express) 
-                        and can arrange invoicing for Enterprise customers.
-                    </p>
-                </div>
             </div>
         </div>
     </div>

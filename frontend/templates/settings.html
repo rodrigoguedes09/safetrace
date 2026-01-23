@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - SafeTrace{% endblock %}
+
+{% block content %}
+<section class="py-20 min-h-screen">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold mb-2">
+                Account <span class="text-primary-400">Settings</span>
+            </h1>
+            <p class="text-gray-400">Manage your account preferences</p>
+        </div>
+        
+        <!-- Profile Section -->
+        <div class="glass-card rounded-xl p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Profile Information</h2>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Email</label>
+                    <input type="email" id="user-email" readonly 
+                        class="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-gray-400 cursor-not-allowed">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium mb-2">Username</label>
+                    <input type="text" id="user-name" readonly 
+                        class="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-gray-400 cursor-not-allowed">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium mb-2">Account Type</label>
+                    <div class="flex items-center space-x-2">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-500/20 text-primary-400">
+                            Free Plan
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Preferences Section -->
+        <div class="glass-card rounded-xl p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Preferences</h2>
+            
+            <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="font-medium">Email Notifications</h3>
+                        <p class="text-sm text-gray-400">Receive analysis completion emails</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="email-notifications" class="sr-only peer" checked>
+                        <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
+                    </label>
+                </div>
+                
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="font-medium">Analysis History</h3>
+                        <p class="text-sm text-gray-400">Store analysis history locally</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="save-history" class="sr-only peer" checked>
+                        <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
+                    </label>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Usage Stats -->
+        <div class="glass-card rounded-xl p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Usage Statistics</h2>
+            
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-primary-400 mb-2" id="total-analyses">0</div>
+                    <p class="text-sm text-gray-400">Total Analyses</p>
+                </div>
+                
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-primary-400 mb-2">100</div>
+                    <p class="text-sm text-gray-400">Daily Limit</p>
+                </div>
+                
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-primary-400 mb-2" id="remaining-requests">100</div>
+                    <p class="text-sm text-gray-400">Remaining Today</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Danger Zone -->
+        <div class="glass-card rounded-xl p-6 border border-red-500/30">
+            <h2 class="text-xl font-semibold mb-4 text-red-400">Danger Zone</h2>
+            
+            <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="font-medium">Clear Analysis History</h3>
+                        <p class="text-sm text-gray-400">Remove all stored analysis records from local storage</p>
+                    </div>
+                    <button onclick="clearHistory()" class="px-4 py-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition">
+                        Clear History
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Back Button -->
+        <div class="mt-8">
+            <a href="/dashboard" class="btn-secondary inline-block">
+                ← Back to Dashboard
+            </a>
+        </div>
+    </div>
+</section>
+
+<script>
+    // Load user data
+    function loadUserSettings() {
+        const user = getCurrentUser();
+        if (!user) {
+            window.location.href = '/';
+            return;
+        }
+        
+        document.getElementById('user-email').value = user.email || 'user@example.com';
+        document.getElementById('user-name').value = user.username || user.email?.split('@')[0] || 'User';
+        
+        // Load history count
+        const history = JSON.parse(localStorage.getItem('safetrace_history') || '[]');
+        document.getElementById('total-analyses').textContent = history.length;
+        
+        // Load preferences
+        const saveHistory = localStorage.getItem('safetrace_save_history') !== 'false';
+        document.getElementById('save-history').checked = saveHistory;
+        
+        const emailNotifications = localStorage.getItem('safetrace_email_notifications') !== 'false';
+        document.getElementById('email-notifications').checked = emailNotifications;
+    }
+    
+    // Save preferences
+    document.getElementById('save-history')?.addEventListener('change', function(e) {
+        localStorage.setItem('safetrace_save_history', e.target.checked);
+        showToast('Preference saved', 'success');
+    });
+    
+    document.getElementById('email-notifications')?.addEventListener('change', function(e) {
+        localStorage.setItem('safetrace_email_notifications', e.target.checked);
+        showToast('Preference saved', 'success');
+    });
+    
+    // Clear history
+    function clearHistory() {
+        if (confirm('Are you sure you want to clear all analysis history? This action cannot be undone.')) {
+            localStorage.removeItem('safetrace_history');
+            document.getElementById('total-analyses').textContent = '0';
+            showToast('History cleared successfully', 'success');
+        }
+    }
+    
+    // Initialize
+    document.addEventListener('DOMContentLoaded', loadUserSettings);
+</script>
+{% endblock %}

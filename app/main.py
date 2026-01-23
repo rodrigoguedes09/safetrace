@@ -5,9 +5,11 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import AsyncGenerator
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import RedirectResponse
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.api.dependencies import cleanup_dependencies, get_db_pool
 from app.api.routes import router
@@ -50,6 +52,30 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info("Cleanup complete")
 
 
+class DocsProtectionMiddleware(BaseHTTPMiddleware):
+    """Middleware to protect API docs from public access."""
+    
+    PROTECTED_PATHS = ["/docs", "/redoc", "/openapi.json"]
+    # Admin IPs permitidos (pode adicionar mais IPs conforme necessário)
+    ALLOWED_IPS = ["127.0.0.1", "::1", "localhost"]
+    
+    async def dispatch(self, request: Request, call_next):
+        """Check if request is trying to access protected docs."""
+        path = request.url.path
+        
+        # Check if path is protected
+        if any(path.startswith(protected) for protected in self.PROTECTED_PATHS):
+            # Get client IP
+            client_ip = request.client.host if request.client else None
+            
+            # Check if IP is allowed (localhost only)
+            if client_ip not in self.ALLOWED_IPS:
+                logger.warning(f"Blocked docs access attempt from {client_ip}")
+                return RedirectResponse(url="/", status_code=302)
+        
+        return await call_next(request)
+
+
 def create_app() -> FastAPI:
     """Create and configure the FastAPI application."""
     settings = get_settings()
@@ -86,6 +112,9 @@ def create_app() -> FastAPI:
         allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         allow_headers=["Authorization", "X-API-Key", "Content-Type", "Accept"],
     )
+    
+    # Add docs protection middleware
+    app.add_middleware(DocsProtectionMiddleware)
 
     # Mount static files from frontend directory
     static_dir = Path(__file__).parent.parent / "frontend" / "static"

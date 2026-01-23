@@ -60,17 +60,27 @@ function updateNavigation() {
     const userMenu = document.getElementById('nav-user-menu');
     
     if (isLoggedIn()) {
+        // User is logged in - hide login button, show user menu
         if (loginBtn) loginBtn.classList.add('hidden');
-        if (ctaBtn) ctaBtn.textContent = 'Dashboard';
-        if (ctaBtn) ctaBtn.href = '/dashboard';
-        if (userMenu) userMenu.classList.remove('hidden');
-        if (userMenu) userMenu.classList.add('flex');
+        if (ctaBtn) {
+            ctaBtn.textContent = 'Dashboard';
+            ctaBtn.href = '/dashboard';
+        }
+        if (userMenu) {
+            userMenu.classList.remove('hidden');
+            userMenu.classList.add('flex');
+        }
     } else {
+        // User is not logged in - show login button, hide user menu
         if (loginBtn) loginBtn.classList.remove('hidden');
-        if (ctaBtn) ctaBtn.textContent = 'Start Analysis';
-        if (ctaBtn) ctaBtn.href = '/analyze';
-        if (userMenu) userMenu.classList.add('hidden');
-        if (userMenu) userMenu.classList.remove('flex');
+        if (ctaBtn) {
+            ctaBtn.textContent = 'Start Analysis';
+            ctaBtn.href = '/analyze';
+        }
+        if (userMenu) {
+            userMenu.classList.add('hidden');
+            userMenu.classList.remove('flex');
+        }
     }
 }
 

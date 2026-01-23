@@ -57,3 +57,12 @@ async def docs_page(request: Request) -> HTMLResponse:
         "documentation.html",
         {"request": request}
     )
+
+
+@router.get("/settings", response_class=HTMLResponse)
+async def settings_page(request: Request) -> HTMLResponse:
+    """Serve the user settings page."""
+    return templates.TemplateResponse(
+        "settings.html",
+        {"request": request}
+    )
