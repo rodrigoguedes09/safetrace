@@ -38,60 +38,21 @@ async def get_metrics(
     admin: Annotated[User, Depends(require_admin)],
     cache: Annotated[object, Depends(get_cache_backend)],
 ) -> dict:
-    """Get global application metrics."""
+    """Get global application metrics - no user-specific data exposed."""
     metrics_service = MetricsService(cache)
-    return await metrics_service.get_global_stats()
+    stats = await metrics_service.get_global_stats()
+    
+    # Only return aggregated, anonymized metrics
+    return {
+        "total_requests": stats.get("total_requests", 0),
+        "total_users": stats.get("total_users", 0),
+        "cache_hits": stats.get("cache_hits", 0),
+        "cache_misses": stats.get("cache_misses", 0),
+        "uptime": stats.get("uptime", 0)
+    }
 
 
-@router.get(
-    "/metrics/user/{user_id}",
-    summary="Get user-specific metrics",
-    description="Get metrics for a specific user. Admin only.",
-)
-async def get_user_metrics(
-    user_id: str,
-    admin: Annotated[User, Depends(require_admin)],
-    cache: Annotated[object, Depends(get_cache_backend)],
-) -> dict:
-    """Get metrics for a specific user."""
-    from uuid import UUID
-    
-    try:
-        user_uuid = UUID(user_id)
-    except ValueError:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid user ID format",
-        )
-    
-    metrics_service = MetricsService(cache)
-    return await metrics_service.get_user_metrics(user_uuid)
-
-
-@router.get(
-    "/audit/user/{user_id}",
-    summary="Get user activity audit log",
-    description="Get recent audit log entries for a user. Admin only.",
-)
-async def get_user_audit_log(
-    user_id: str,
-    admin: Annotated[User, Depends(require_admin)],
-    db_pool: Annotated[object, Depends(get_db_pool)],
-    limit: int = 100,
-) -> list[dict]:
-    """Get audit log for a specific user."""
-    from uuid import UUID
-    
-    try:
-        user_uuid = UUID(user_id)
-    except ValueError:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid user ID format",
-        )
-    
-    audit_logger = AuditLogger(db_pool)
-    return await audit_logger.get_user_activity(user_uuid, limit)
+# User-specific metrics and audit routes removed - SafeTrace does not expose individual user data
 
 
 @router.get(
@@ -138,46 +99,4 @@ async def detailed_health_check(
     return health
 
 
-@router.post(
-    "/users/{user_id}/upgrade",
-    summary="Upgrade user to premium",
-    description="Manually upgrade a user to premium tier. Admin only.",
-)
-async def upgrade_user(
-    user_id: str,
-    admin: Annotated[User, Depends(require_admin)],
-    db_pool: Annotated[object, Depends(get_db_pool)],
-) -> dict:
-    """Upgrade a user to premium tier."""
-    from uuid import UUID
-    
-    try:
-        user_uuid = UUID(user_id)
-    except ValueError:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid user ID format",
-        )
-    
-    async with db_pool.acquire() as conn:
-        result = await conn.execute(
-            "UPDATE users SET is_premium = true WHERE id = $1",
-            user_uuid,
-        )
-        
-        if result == "UPDATE 0":
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="User not found",
-            )
-    
-    # Log audit event
-    from app.services.audit_logger import AuditAction
-    audit_logger = AuditLogger(db_pool)
-    await audit_logger.log(
-        action=AuditAction.USER_UPGRADED,
-        user_id=user_uuid,
-        details={"upgraded_by": str(admin.id)},
-    )
-    
-    return {"status": "success", "message": "User upgraded to premium"}
+# User management routes removed - SafeTrace does not expose user administration endpoints publicly

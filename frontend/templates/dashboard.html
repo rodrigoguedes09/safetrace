@@ -73,36 +73,12 @@
         
         <!-- Main Content Grid -->
         <div class="grid lg:grid-cols-3 gap-8">
-            <!-- API Keys Section -->
+            <!-- Analysis History -->
             <div class="lg:col-span-2">
                 <div class="glass-card rounded-xl p-6">
                     <div class="flex items-center justify-between mb-6">
-                        <h2 class="text-xl font-semibold">API Keys</h2>
-                        <button onclick="createApiKey()" class="text-sm btn-secondary py-2 px-4">
-                            <svg class="inline w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                            </svg>
-                            New Key
-                        </button>
-                    </div>
-                    
-                    <div id="api-keys-list" class="space-y-4">
-                        <!-- API Keys will be loaded here -->
-                        <div class="text-center py-8 text-gray-400" id="no-keys-message">
-                            <svg class="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
-                            </svg>
-                            <p>No API keys yet</p>
-                            <button onclick="createApiKey()" class="text-primary-400 hover:underline mt-2">Create your first key</button>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Analysis History -->
-                <div class="glass-card rounded-xl p-6 mt-8">
-                    <div class="flex items-center justify-between mb-6">
                         <h2 class="text-xl font-semibold">Recent Analyses</h2>
-                        <a href="/dashboard/history" class="text-sm text-primary-400 hover:underline">View All</a>
+                        <a href="/analyze" class="text-sm text-primary-400 hover:underline">New Analysis</a>
                     </div>
                     
                     <div id="history-list" class="space-y-4">
@@ -120,30 +96,6 @@
             
             <!-- Sidebar -->
             <div class="space-y-8">
-                <!-- Quick Actions -->
-                <div class="glass-card rounded-xl p-6">
-                    <h2 class="text-xl font-semibold mb-4">Quick Actions</h2>
-                    <div class="space-y-3">
-                        <a href="/analyze" class="flex items-center p-3 bg-dark-800 rounded-lg hover:bg-dark-900 transition">
-                            <svg class="w-5 h-5 text-primary-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                            </svg>
-                            New Analysis
-                        </a>
-                        <a href="/docs" class="flex items-center p-3 bg-dark-800 rounded-lg hover:bg-dark-900 transition">
-                            <svg class="w-5 h-5 text-green-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                            </svg>
-                            API Documentation
-                        </a>
-                        <a href="/pricing" class="flex items-center p-3 bg-dark-800 rounded-lg hover:bg-dark-900 transition">
-                            <svg class="w-5 h-5 text-yellow-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
-                            </svg>
-                            Upgrade Plan
-                        </a>
-                    </div>
-                </div>
                 
                 <!-- Account Info -->
                 <div class="glass-card rounded-xl p-6">
@@ -182,88 +134,12 @@
                             <span class="text-primary-400 mr-2">•</span>
                             Download PDF reports for compliance records
                         </li>
-                        <li class="flex items-start">
-                            <span class="text-primary-400 mr-2">•</span>
-                            Keep API keys secure and rotate regularly
-                        </li>
                     </ul>
                 </div>
             </div>
         </div>
     </div>
 </section>
-
-<!-- Create API Key Modal -->
-<div id="create-key-modal" class="fixed inset-0 z-50 hidden">
-    <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeKeyModal()"></div>
-    <div class="flex items-center justify-center min-h-screen p-4">
-        <div class="relative glass-card rounded-2xl p-8 w-full max-w-md animate-slide-up">
-            <button onclick="closeKeyModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-            </button>
-            
-            <h2 class="text-2xl font-bold mb-6">Create API Key</h2>
-            <form id="create-key-form" onsubmit="handleCreateKey(event)">
-                <div class="mb-4">
-                    <label class="block text-sm font-medium mb-2">Key Name *</label>
-                    <input type="text" id="key-name" required minlength="1" maxlength="50"
-                        placeholder="e.g., Production Server"
-                        class="w-full bg-dark-800 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:border-primary-500 transition">
-                </div>
-                <div class="mb-6">
-                    <label class="block text-sm font-medium mb-2">Description (optional)</label>
-                    <textarea id="key-description" maxlength="200" rows="2"
-                        placeholder="What will this key be used for?"
-                        class="w-full bg-dark-800 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:border-primary-500 transition resize-none"></textarea>
-                </div>
-                <button type="submit" class="w-full btn-primary">Create Key</button>
-            </form>
-            <div id="create-key-error" class="mt-4 text-red-400 text-sm hidden"></div>
-        </div>
-    </div>
-</div>
-
-<!-- Show New Key Modal -->
-<div id="new-key-modal" class="fixed inset-0 z-50 hidden">
-    <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeNewKeyModal()"></div>
-    <div class="flex items-center justify-center min-h-screen p-4">
-        <div class="relative glass-card rounded-2xl p-8 w-full max-w-lg animate-slide-up">
-            <div class="text-center">
-                <svg class="w-16 h-16 text-green-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                <h2 class="text-2xl font-bold mb-2">API Key Created!</h2>
-                <p class="text-gray-400 mb-6">
-                    ⚠️ Copy this key now. You won't be able to see it again!
-                </p>
-            </div>
-            
-            <div class="bg-dark-900 rounded-lg p-4 mb-6">
-                <p class="text-xs text-gray-400 mb-2">Your API Key:</p>
-                <div class="flex items-center space-x-2">
-                    <code id="new-key-value" class="flex-1 font-mono text-sm text-green-400 break-all"></code>
-                    <button onclick="copyApiKey()" class="p-2 hover:bg-dark-800 rounded transition" title="Copy">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-            
-            <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4 mb-6">
-                <p class="text-yellow-400 text-sm">
-                    <strong>Important:</strong> Store this key securely. It provides access to your account's API quota.
-                </p>
-            </div>
-            
-            <button onclick="closeNewKeyModal()" class="w-full btn-primary">
-                I've Saved My Key
-            </button>
-        </div>
-    </div>
-</div>
 {% endblock %}
 
 {% block extra_scripts %}

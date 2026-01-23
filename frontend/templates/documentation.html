@@ -7,219 +7,285 @@
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-12">
             <h1 class="text-4xl font-bold mb-4">
-                API <span class="text-primary-400">Documentation</span>
+                Technical <span class="text-primary-400">Documentation</span>
             </h1>
             <p class="text-gray-400">
-                Complete guide to integrating SafeTrace into your application
+                Understanding SafeTrace's blockchain compliance technology
             </p>
         </div>
         
-        <!-- Quick Links -->
-        <div class="glass-card rounded-xl p-6 mb-8">
-            <h2 class="text-xl font-semibold mb-4">Quick Links</h2>
-            <div class="grid md:grid-cols-3 gap-4">
-                <a href="/docs" class="p-4 bg-dark-800 rounded-lg hover:bg-dark-900 transition">
-                    <h3 class="font-semibold mb-1">Swagger UI</h3>
-                    <p class="text-sm text-gray-400">Interactive API explorer</p>
-                </a>
-                <a href="/redoc" class="p-4 bg-dark-800 rounded-lg hover:bg-dark-900 transition">
-                    <h3 class="font-semibold mb-1">ReDoc</h3>
-                    <p class="text-sm text-gray-400">Beautiful API reference</p>
-                </a>
-                <a href="/openapi.json" class="p-4 bg-dark-800 rounded-lg hover:bg-dark-900 transition">
-                    <h3 class="font-semibold mb-1">OpenAPI Spec</h3>
-                    <p class="text-sm text-gray-400">Download JSON schema</p>
-                </a>
+        <!-- What is SafeTrace -->
+        <div class="glass-card rounded-xl p-6 mb-8" id="overview">
+            <h2 class="text-2xl font-semibold mb-4">What is SafeTrace?</h2>
+            
+            <div class="space-y-4 text-gray-300">
+                <p>
+                    SafeTrace is a comprehensive blockchain compliance platform that provides Know Your Transaction (KYT) 
+                    analysis across multiple blockchain networks. Our technology helps businesses and individuals assess 
+                    the risk profile of cryptocurrency transactions in real-time.
+                </p>
+                
+                <p>
+                    By analyzing transaction patterns, wallet interactions, and on-chain behavior, SafeTrace identifies 
+                    potential risks associated with illicit activities, money laundering, sanctioned entities, and other 
+                    compliance concerns.
+                </p>
             </div>
         </div>
         
-        <!-- Getting Started -->
-        <div class="glass-card rounded-xl p-6 mb-8" id="getting-started">
-            <h2 class="text-2xl font-semibold mb-4">Getting Started</h2>
+        <!-- How It Works -->
+        <div class="glass-card rounded-xl p-6 mb-8" id="how-it-works">
+            <h2 class="text-2xl font-semibold mb-4">How It Works</h2>
             
             <div class="space-y-6">
-                <div>
-                    <h3 class="text-lg font-medium mb-2">1. Create an Account</h3>
-                    <p class="text-gray-400 mb-3">
-                        First, create an account to get access to the API.
-                    </p>
-                    <div class="bg-dark-900 rounded-lg p-4 font-mono text-sm overflow-x-auto">
-                        <pre class="text-gray-300"><code>curl -X POST "https://your-domain.com/auth/register" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "your@email.com",
-    "full_name": "Your Name",
-    "password": "YourSecurePassword123"
-  }'</code></pre>
+                <div class="flex items-start">
+                    <div class="flex-shrink-0 w-12 h-12 bg-primary-500/20 rounded-lg flex items-center justify-center text-primary-400 font-bold mr-4">
+                        1
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-medium mb-2">Transaction Input</h3>
+                        <p class="text-gray-400">
+                            You provide a transaction hash from any supported blockchain network. SafeTrace supports 
+                            over 40 blockchain networks including Ethereum, Bitcoin, BNB Chain, Polygon, and more.
+                        </p>
                     </div>
                 </div>
                 
-                <div>
-                    <h3 class="text-lg font-medium mb-2">2. Get an API Key</h3>
-                    <p class="text-gray-400 mb-3">
-                        Use your credentials to create an API key.
-                    </p>
-                    <div class="bg-dark-900 rounded-lg p-4 font-mono text-sm overflow-x-auto">
-                        <pre class="text-gray-300"><code>curl -X POST "https://your-domain.com/auth/bootstrap?email=your@email.com&password=YourPassword123" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "My API Key",
-    "description": "Production use"
-  }'</code></pre>
+                <div class="flex items-start">
+                    <div class="flex-shrink-0 w-12 h-12 bg-primary-500/20 rounded-lg flex items-center justify-center text-primary-400 font-bold mr-4">
+                        2
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-medium mb-2">Graph Traversal Analysis</h3>
+                        <p class="text-gray-400">
+                            Our system uses advanced graph algorithms (Breadth-First Search) to trace the transaction 
+                            across multiple hops. We analyze the flow of funds, identify involved addresses, and map 
+                            the entire transaction network up to a configurable depth.
+                        </p>
                     </div>
                 </div>
                 
-                <div>
-                    <h3 class="text-lg font-medium mb-2">3. Analyze a Transaction</h3>
-                    <p class="text-gray-400 mb-3">
-                        Use your API key to trace a transaction's risk profile.
-                    </p>
-                    <div class="bg-dark-900 rounded-lg p-4 font-mono text-sm overflow-x-auto">
-                        <pre class="text-gray-300"><code>curl -X POST "https://your-domain.com/api/v1/compliance/trace" \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: sk_your_api_key_here" \
-  -d '{
-    "tx_hash": "0x7c9e8f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e",
-    "chain": "ethereum",
-    "depth": 3
-  }'</code></pre>
+                <div class="flex items-start">
+                    <div class="flex-shrink-0 w-12 h-12 bg-primary-500/20 rounded-lg flex items-center justify-center text-primary-400 font-bold mr-4">
+                        3
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-medium mb-2">Risk Scoring</h3>
+                        <p class="text-gray-400">
+                            Each transaction is evaluated against multiple risk indicators including sanctioned addresses, 
+                            known mixers/tumblers, exchange patterns, and suspicious transaction behaviors. Our multi-layered 
+                            risk scoring model assigns a comprehensive risk score from 0-100.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="flex items-start">
+                    <div class="flex-shrink-0 w-12 h-12 bg-primary-500/20 rounded-lg flex items-center justify-center text-primary-400 font-bold mr-4">
+                        4
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-medium mb-2">Detailed Report</h3>
+                        <p class="text-gray-400">
+                            You receive a comprehensive analysis report with risk scores, identified patterns, flagged 
+                            addresses, and recommendations. Reports can be viewed online or exported as PDF certificates 
+                            for compliance documentation.
+                        </p>
                     </div>
                 </div>
             </div>
         </div>
         
-        <!-- API Reference -->
-        <div class="glass-card rounded-xl p-6 mb-8" id="api">
-            <h2 class="text-2xl font-semibold mb-4">API Reference</h2>
+        <!-- Risk Scoring Model -->
+        <div class="glass-card rounded-xl p-6 mb-8" id="risk-model">
+            <h2 class="text-2xl font-semibold mb-4">Risk Scoring Model</h2>
             
-            <div class="space-y-6">
-                <div class="border-b border-gray-700 pb-6">
-                    <div class="flex items-center space-x-2 mb-2">
-                        <span class="px-2 py-1 bg-green-500/20 text-green-400 text-xs font-semibold rounded">POST</span>
-                        <code class="text-primary-400">/api/v1/compliance/trace</code>
-                    </div>
-                    <p class="text-gray-400 mb-3">Analyze a blockchain transaction for risk indicators.</p>
-                    <h4 class="font-medium mb-2">Request Body</h4>
-                    <table class="w-full text-sm">
-                        <thead class="text-left text-gray-400">
-                            <tr>
-                                <th class="pb-2">Parameter</th>
-                                <th class="pb-2">Type</th>
-                                <th class="pb-2">Required</th>
-                                <th class="pb-2">Description</th>
-                            </tr>
-                        </thead>
-                        <tbody class="text-gray-300">
-                            <tr>
-                                <td class="py-1"><code>tx_hash</code></td>
-                                <td>string</td>
-                                <td>Yes</td>
-                                <td>Transaction hash to analyze</td>
-                            </tr>
-                            <tr>
-                                <td class="py-1"><code>chain</code></td>
-                                <td>string</td>
-                                <td>No</td>
-                                <td>Blockchain network (default: ethereum)</td>
-                            </tr>
-                            <tr>
-                                <td class="py-1"><code>depth</code></td>
-                                <td>integer</td>
-                                <td>No</td>
-                                <td>Trace depth 1-10 (default: 3)</td>
-                            </tr>
-                        </tbody>
-                    </table>
+            <p class="text-gray-400 mb-6">
+                SafeTrace employs a sophisticated multi-factor risk scoring algorithm that evaluates transactions 
+                across several dimensions:
+            </p>
+            
+            <div class="space-y-4">
+                <div class="bg-dark-800 rounded-lg p-4">
+                    <h3 class="font-medium mb-2 text-green-400">Low Risk (0-33)</h3>
+                    <p class="text-sm text-gray-400">
+                        Transactions showing normal patterns with verified counterparties, consistent with legitimate 
+                        business activities. No suspicious indicators detected.
+                    </p>
                 </div>
                 
-                <div class="border-b border-gray-700 pb-6">
-                    <div class="flex items-center space-x-2 mb-2">
-                        <span class="px-2 py-1 bg-blue-500/20 text-blue-400 text-xs font-semibold rounded">GET</span>
-                        <code class="text-primary-400">/api/v1/chains</code>
-                    </div>
-                    <p class="text-gray-400">List all supported blockchain networks.</p>
+                <div class="bg-dark-800 rounded-lg p-4">
+                    <h3 class="font-medium mb-2 text-yellow-400">Medium Risk (34-66)</h3>
+                    <p class="text-sm text-gray-400">
+                        Transactions with some concerning patterns such as interaction with high-volume exchanges, 
+                        privacy-focused services, or unusual transaction structures. Requires additional review.
+                    </p>
                 </div>
                 
-                <div>
-                    <div class="flex items-center space-x-2 mb-2">
-                        <span class="px-2 py-1 bg-blue-500/20 text-blue-400 text-xs font-semibold rounded">GET</span>
-                        <code class="text-primary-400">/api/v1/health</code>
-                    </div>
-                    <p class="text-gray-400">Check API health status.</p>
+                <div class="bg-dark-800 rounded-lg p-4">
+                    <h3 class="font-medium mb-2 text-red-400">High Risk (67-100)</h3>
+                    <p class="text-sm text-gray-400">
+                        Transactions involving sanctioned addresses, known mixers/tumblers, darknet markets, ransomware 
+                        addresses, or other high-risk entities. Immediate attention and enhanced due diligence recommended.
+                    </p>
                 </div>
             </div>
         </div>
-        
-        <!-- Supported Chains -->
-        <div class="glass-card rounded-xl p-6 mb-8" id="chains">
             <h2 class="text-2xl font-semibold mb-4">Supported Blockchains</h2>
             
             <div class="grid md:grid-cols-2 gap-4">
                 <div>
                     <h3 class="font-medium mb-2 text-primary-400">EVM Chains</h3>
                     <ul class="text-gray-400 text-sm space-y-1">
-                        <li>• Ethereum (ethereum)</li>
-                        <li>• BNB Smart Chain (binance-smart-chain)</li>
-                        <li>• Polygon (polygon)</li>
-                        <li>• Arbitrum (arbitrum)</li>
-                        <li>• Optimism (optimism)</li>
-                        <li>• Avalanche (avalanche)</li>
-                        <li>• Base (base)</li>
-                        <li>• Fantom (fantom)</li>
-                        <li>• Gnosis (gnosis)</li>
+                        <li>• Ethereum</li>
+                        <li>• BNB Smart Chain</li>
+                        <li>• Polygon</li>
+                        <li>• Arbitrum</li>
+                        <li>• Optimism</li>
+                        <li>• Avalanche</li>
+                        <li>• Base</li>
+                        <li>• Fantom</li>
+                        <li>• Gnosis</li>
                         <li>• And 20+ more...</li>
                     </ul>
                 </div>
                 <div>
                     <h3 class="font-medium mb-2 text-primary-400">UTXO Chains</h3>
                     <ul class="text-gray-400 text-sm space-y-1">
-                        <li>• Bitcoin (bitcoin)</li>
-                        <li>• Bitcoin Cash (bitcoin-cash)</li>
-                        <li>• Litecoin (litecoin)</li>
-                        <li>• Dogecoin (dogecoin)</li>
-                        <li>• Dash (dash)</li>
-                        <li>• Zcash (zcash)</li>
+                        <li>• Bitcoin</li>
+                        <li>• Bitcoin Cash</li>
+                        <li>• Litecoin</li>
+                        <li>• Dogecoin</li>
+                        <li>• Dash</li>
+                        <li>• Zcash</li>
                         <li>• And more...</li>
                     </ul>
                 </div>
             </div>
         </div>
         
-        <!-- Rate Limits -->
+        <!-- Features & Capabilities -->
+        <div class="glass-card rounded-xl p-6 mb-8" id="features">
+            <h2 class="text-2xl font-semibold mb-4">Key Features</h2>
+            
+            <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                    <div class="flex items-center mb-3">
+                        <svg class="w-6 h-6 text-primary-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <h3 class="font-medium">Multi-Chain Support</h3>
+                    </div>
+                    <p class="text-sm text-gray-400">
+                        Analyze transactions across 40+ blockchain networks with unified risk scoring.
+                    </p>
+                </div>
+                
+                <div>
+                    <div class="flex items-center mb-3">
+                        <svg class="w-6 h-6 text-primary-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                        <h3 class="font-medium">Real-Time Analysis</h3>
+                    </div>
+                    <p class="text-sm text-gray-400">
+                        Get instant risk assessments with sub-second response times for most transactions.
+                    </p>
+                </div>
+                
+                <div>
+                    <div class="flex items-center mb-3">
+                        <svg class="w-6 h-6 text-primary-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
+                        <h3 class="font-medium">Deep Graph Analysis</h3>
+                    </div>
+                    <p class="text-sm text-gray-400">
+                        Trace transaction flows up to 10 hops deep to uncover hidden risk connections.
+                    </p>
+                </div>
+                
+                <div>
+                    <div class="flex items-center mb-3">
+                        <svg class="w-6 h-6 text-primary-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        <h3 class="font-medium">Compliance Reports</h3>
+                    </div>
+                    <p class="text-sm text-gray-400">
+                        Generate PDF certificates and detailed reports for regulatory compliance and audits.
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Usage Limits -->
         <div class="glass-card rounded-xl p-6" id="limits">
-            <h2 class="text-2xl font-semibold mb-4">Rate Limits</h2>
+            <h2 class="text-2xl font-semibold mb-4">Usage Tiers</h2>
             
             <table class="w-full text-sm">
                 <thead class="text-left text-gray-400">
                     <tr class="border-b border-gray-700">
                         <th class="pb-3">Plan</th>
-                        <th class="pb-3">Daily Limit</th>
-                        <th class="pb-3">Max Depth</th>
+                        <th class="pb-3">Daily Analyses</th>
+                        <th class="pb-3">Max Trace Depth</th>
+                        <th class="pb-3">PDF Reports</th>
                     </tr>
                 </thead>
                 <tbody class="text-gray-300">
                     <tr class="border-b border-gray-800">
                         <td class="py-3">Free</td>
-                        <td>100 requests</td>
+                        <td>100 analyses</td>
                         <td>3 hops</td>
+                        <td>Yes</td>
                     </tr>
                     <tr class="border-b border-gray-800">
                         <td class="py-3">Pro</td>
-                        <td>1,000 requests</td>
+                        <td>1,000 analyses</td>
                         <td>10 hops</td>
+                        <td>Yes</td>
                     </tr>
                     <tr>
                         <td class="py-3">Enterprise</td>
                         <td>Unlimited</td>
                         <td>10 hops</td>
+                        <td>Yes</td>
                     </tr>
                 </tbody>
             </table>
             
             <p class="text-gray-400 text-sm mt-4">
-                Rate limits reset at midnight UTC. Need higher limits? 
-                <a href="/pricing" class="text-primary-400 hover:underline">Upgrade your plan</a>.
+                All limits reset daily at midnight UTC. Need higher limits? 
+                <a href="/pricing" class="text-primary-400 hover:underline">View pricing plans</a>.
             </p>
+        </div>
+        
+        <!-- Getting Started -->
+        <div class="glass-card rounded-xl p-6" id="getting-started">
+            <h2 class="text-2xl font-semibold mb-4">Getting Started</h2>
+            
+            <div class="space-y-4 text-gray-300">
+                <p>
+                    To start using SafeTrace, simply create an account and begin analyzing transactions directly 
+                    through our web interface. No technical integration required.
+                </p>
+                
+                <ol class="list-decimal list-inside space-y-2 text-gray-400">
+                    <li>Create a free account on the platform</li>
+                    <li>Navigate to the Analysis page</li>
+                    <li>Enter a transaction hash and select the blockchain network</li>
+                    <li>View your comprehensive risk analysis</li>
+                    <li>Export reports as needed for compliance</li>
+                </ol>
+                
+                <div class="mt-6 pt-6 border-t border-gray-700">
+                    <a href="/analyze" class="btn-primary inline-block">
+                        Start Analyzing Transactions
+                        <svg class="inline w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 </section>
