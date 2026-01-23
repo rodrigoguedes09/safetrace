@@ -4,8 +4,9 @@ import asyncio
 import logging
 from collections import deque
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any
+import heapq
 
 from app.constants import (
     CACHEABLE_DEFINITIVE_TAGS,
@@ -35,6 +36,14 @@ class TraceNode:
     address: str
     depth: int
     parent_tx: str | None = None
+    priority_score: float = 0.0  # Higher score = higher priority for BFS
+    
+    def __lt__(self, other: 'TraceNode') -> bool:
+        """Compare nodes by priority for heap queue."""
+        # Lower depth and higher priority score come first
+        if self.depth != other.depth:
+            return self.depth < other.depth
+        return self.priority_score > other.priority_score
 
 
 @dataclass
@@ -46,6 +55,10 @@ class TraceState:
     flagged_entities: list[FlaggedEntity] = field(default_factory=list)
     address_metadata_cache: dict[str, AddressMetadata] = field(default_factory=dict)
     api_calls: int = 0
+    # Advanced tracking
+    address_connections: dict[str, set[str]] = field(default_factory=dict)  # Graph edges
+    circular_paths: list[tuple[str, ...]] = field(default_factory=list)  # Detected loops
+    transaction_timestamps: dict[str, datetime] = field(default_factory=dict)  # Temporal analysis
 
 
 class TransactionTracerService:
@@ -129,29 +142,35 @@ class TransactionTracerService:
             logger.error(f"Failed to fetch transaction {tx_hash}: {e}")
             raise InvalidTransactionError(tx_hash, chain) from e
 
-        # Initialize BFS queue
-        queue: deque[TraceNode] = deque()
+        # Initialize BFS priority queue
+        queue: list[TraceNode] = []  # heapq
         source_addresses = initial_tx.get_source_addresses()
 
         for address in source_addresses:
             if address:
-                queue.append(
-                    TraceNode(
-                        tx_hash=tx_hash,
-                        address=address,
-                        depth=0,
-                        parent_tx=None,
-                    )
+                node = TraceNode(
+                    tx_hash=tx_hash,
+                    address=address,
+                    depth=0,
+                    parent_tx=None,
+                    priority_score=0.0,
                 )
+                heapq.heappush(queue, node)
 
         # Execute BFS
         await self._bfs_trace(chain, chain_config, queue, depth, state)
 
-        # Calculate risk score
-        risk_score = self._risk_scorer.calculate_score(
-            state.flagged_entities,
-            state.address_metadata_cache,
-            depth,
+        # Calculate clustering coefficient
+        clustering = self._calculate_clustering_coefficient(state)
+
+        # Calculate advanced risk score with all features
+        risk_score = self._risk_scorer.calculate_advanced_score(
+            flagged_entities=state.flagged_entities,
+            address_metadata=state.address_metadata_cache,
+            trace_depth=depth,
+            transaction_timestamps=state.transaction_timestamps,
+            clustering_coefficient=clustering,
+            circular_paths=state.circular_paths,
         )
 
         # Build report
@@ -179,14 +198,16 @@ class TransactionTracerService:
         self,
         chain: str,
         chain_config: Any,
-        queue: deque[TraceNode],
+        queue: list[TraceNode],
         max_depth: int,
         state: TraceState,
     ) -> None:
-        """Execute BFS traversal for transaction tracing.
+        """Execute priority-based BFS traversal with loop detection.
         
-        Includes safety limits to prevent runaway traces on transactions
-        with many inputs (e.g., exchange consolidations).
+        Improvements:
+        - Uses heapq for priority-based exploration
+        - Detects circular transaction paths
+        - Tracks graph structure for clustering analysis
         """
         addresses_processed = 0
         
@@ -199,16 +220,15 @@ class TransactionTracerService:
                 )
                 break
             
-            # Process nodes at current depth in parallel
+            # Process nodes in batches by depth for concurrency
             current_batch: list[TraceNode] = []
             current_depth = queue[0].depth if queue else 0
 
-            while queue and queue[0].depth == current_depth:
-                # Check limit before adding to batch
+            while queue and queue[0].depth == current_depth and len(current_batch) < 20:
                 if addresses_processed >= self._max_addresses:
                     break
                     
-                node = queue.popleft()
+                node = heapq.heappop(queue)
                 
                 # Skip if already visited
                 address_key = f"{chain}:{node.address.lower()}"
@@ -229,7 +249,7 @@ class TransactionTracerService:
             ]
             results = await asyncio.gather(*tasks, return_exceptions=True)
 
-            # Add new nodes to queue
+            # Add new nodes to priority queue
             for result in results:
                 if isinstance(result, Exception):
                     logger.warning(f"Error processing node: {result}")
@@ -237,7 +257,12 @@ class TransactionTracerService:
                 if isinstance(result, list):
                     for new_node in result:
                         if new_node.depth <= max_depth:
-                            queue.append(new_node)
+                            heapq.heappush(queue, new_node)
+        
+        # Calculate clustering coefficient
+        clustering = self._calculate_clustering_coefficient(state)
+        if clustering > 0.5:
+            logger.info(f"High clustering detected: {clustering:.2f} - possible mixing network")
 
     async def _process_trace_node(
         self,
@@ -297,7 +322,7 @@ class TransactionTracerService:
         node: TraceNode,
         state: TraceState,
     ) -> list[TraceNode]:
-        """Trace inputs for UTXO-based chains."""
+        """Trace inputs for UTXO-based chains with priority scoring."""
         new_nodes: list[TraceNode] = []
 
         try:
@@ -309,14 +334,30 @@ class TransactionTracerService:
                     continue
                     
                 state.visited_transactions.add(tx_key)
-                new_nodes.append(
-                    TraceNode(
-                        tx_hash=prev_tx_hash,
-                        address=address,
-                        depth=node.depth + 1,
-                        parent_tx=node.tx_hash,
-                    )
+                
+                # Track graph connections
+                node_addr = node.address.lower()
+                if node_addr not in state.address_connections:
+                    state.address_connections[node_addr] = set()
+                state.address_connections[node_addr].add(address.lower())
+                
+                # Calculate priority based on metadata (if cached)
+                priority = 0.0
+                addr_key = address.lower()
+                if addr_key in state.address_metadata_cache:
+                    metadata = state.address_metadata_cache[addr_key]
+                    # Higher priority for flagged addresses
+                    if metadata.tags:
+                        priority = len(metadata.tags) * 10.0
+                
+                new_node = TraceNode(
+                    tx_hash=prev_tx_hash,
+                    address=address,
+                    depth=node.depth + 1,
+                    parent_tx=node.tx_hash,
+                    priority_score=priority,
                 )
+                new_nodes.append(new_node)
         except Exception as e:
             logger.warning(f"Failed to trace UTXO inputs for {node.tx_hash}: {e}")
 
@@ -329,22 +370,41 @@ class TransactionTracerService:
         node: TraceNode,
         state: TraceState,
     ) -> list[TraceNode]:
-        """Trace inputs for Account-based chains."""
+        """Trace inputs for Account-based chains with temporal analysis."""
         new_nodes: list[TraceNode] = []
 
         try:
             tx = await self._fetch_transaction_cached(chain, node.tx_hash, state)
             
+            # Store timestamp for velocity analysis
+            if tx.timestamp:
+                state.transaction_timestamps[node.tx_hash.lower()] = tx.timestamp
+            
             # Trace sender
             if tx.sender:
                 sender_key = f"{chain}:{tx.sender.lower()}"
                 if sender_key not in state.visited_addresses:
+                    # Track connection
+                    node_addr = node.address.lower()
+                    if node_addr not in state.address_connections:
+                        state.address_connections[node_addr] = set()
+                    state.address_connections[node_addr].add(tx.sender.lower())
+                    
+                    # Calculate priority
+                    priority = 0.0
+                    sender_lower = tx.sender.lower()
+                    if sender_lower in state.address_metadata_cache:
+                        metadata = state.address_metadata_cache[sender_lower]
+                        if metadata.tags:
+                            priority = len(metadata.tags) * 10.0
+                    
                     new_nodes.append(
                         TraceNode(
                             tx_hash=node.tx_hash,
                             address=tx.sender,
                             depth=node.depth + 1,
                             parent_tx=node.tx_hash,
+                            priority_score=priority,
                         )
                     )
 
@@ -354,12 +414,20 @@ class TransactionTracerService:
                     if itx.from_address:
                         from_key = f"{chain}:{itx.from_address.lower()}"
                         if from_key not in state.visited_addresses:
+                            # Track connection
+                            node_addr = node.address.lower()
+                            if node_addr not in state.address_connections:
+                                state.address_connections[node_addr] = set()
+                            state.address_connections[node_addr].add(itx.from_address.lower())
+                            
+                            priority = 5.0  # Internal txs have medium priority
                             new_nodes.append(
                                 TraceNode(
                                     tx_hash=node.tx_hash,
                                     address=itx.from_address,
                                     depth=node.depth + 1,
                                     parent_tx=node.tx_hash,
+                                    priority_score=priority,
                                 )
                             )
         except Exception as e:

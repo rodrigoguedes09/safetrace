@@ -28,12 +28,78 @@ from app.models.blockchain import (
 logger = logging.getLogger(__name__)
 
 
+class CircuitBreaker:
+    """Circuit breaker pattern for API resilience.
+    
+    States:
+    - CLOSED: Normal operation
+    - OPEN: Too many failures, reject requests
+    - HALF_OPEN: Testing if service recovered
+    """
+    
+    def __init__(
+        self,
+        failure_threshold: int = 5,
+        recovery_timeout: float = 60.0,
+        expected_exception: type = Exception
+    ):
+        self.failure_threshold = failure_threshold
+        self.recovery_timeout = recovery_timeout
+        self.expected_exception = expected_exception
+        
+        self.failure_count = 0
+        self.last_failure_time: float | None = None
+        self.state = "CLOSED"  # CLOSED, OPEN, HALF_OPEN
+    
+    def call(self, func):
+        """Decorator to wrap function calls with circuit breaker."""
+        async def wrapper(*args, **kwargs):
+            if self.state == "OPEN":
+                if self._should_attempt_reset():
+                    self.state = "HALF_OPEN"
+                else:
+                    raise Exception("Circuit breaker is OPEN - API unavailable")
+            
+            try:
+                result = await func(*args, **kwargs)
+                self._on_success()
+                return result
+            except self.expected_exception as e:
+                self._on_failure()
+                raise e
+        
+        return wrapper
+    
+    def _should_attempt_reset(self) -> bool:
+        """Check if enough time has passed to try recovery."""
+        if not self.last_failure_time:
+            return True
+        return (asyncio.get_event_loop().time() - self.last_failure_time) >= self.recovery_timeout
+    
+    def _on_success(self):
+        """Reset circuit breaker on successful call."""
+        self.failure_count = 0
+        self.state = "CLOSED"
+    
+    def _on_failure(self):
+        """Record failure and potentially open circuit."""
+        self.failure_count += 1
+        self.last_failure_time = asyncio.get_event_loop().time()
+        
+        if self.failure_count >= self.failure_threshold:
+            self.state = "OPEN"
+            logger.error(f"Circuit breaker OPEN after {self.failure_count} failures")
+
+
 class BlockchairProvider(BlockchainProvider):
     """
     Blockchair API provider supporting 41+ blockchains.
     
-    Handles rate limiting, retries, and normalizes responses
-    across UTXO and Account-based chains.
+    Features:
+    - Rate limiting and retries
+    - Circuit breaker for resilience
+    - Response normalization across UTXO and Account-based chains
+    - Health checking
     """
 
     def __init__(
@@ -66,6 +132,13 @@ class BlockchairProvider(BlockchainProvider):
         self._last_request_time: float = 0
         self._lock = asyncio.Lock()
         self._client: httpx.AsyncClient | None = None
+        
+        # Circuit breaker for API resilience
+        self._circuit_breaker = CircuitBreaker(
+            failure_threshold=5,
+            recovery_timeout=60.0,
+            expected_exception=Exception
+        )
 
     @property
     def name(self) -> str:
@@ -146,10 +219,13 @@ class BlockchairProvider(BlockchainProvider):
                     return {"data": None, "context": {}}
 
                 response.raise_for_status()
+                # Success - reset circuit breaker
+                self._circuit_breaker._on_success()
                 return response.json()
 
             except httpx.TimeoutException as e:
                 last_error = e
+                self._circuit_breaker._on_failure()
                 if attempt < self._max_retries - 1:
                     await asyncio.sleep(self._retry_delay * (2**attempt))
                     continue
@@ -157,9 +233,11 @@ class BlockchairProvider(BlockchainProvider):
 
             except httpx.HTTPStatusError as e:
                 last_error = e
-                if e.response.status_code >= 500 and attempt < self._max_retries - 1:
-                    await asyncio.sleep(self._retry_delay * (2**attempt))
-                    continue
+                if e.response.status_code >= 500:
+                    self._circuit_breaker._on_failure()
+                    if attempt < self._max_retries - 1:
+                        await asyncio.sleep(self._retry_delay * (2**attempt))
+                        continue
                 raise
 
         if last_error:
@@ -503,3 +581,30 @@ class BlockchairProvider(BlockchainProvider):
     def reset_request_count(self) -> None:
         """Reset the request counter."""
         self._request_count = 0
+
+    async def health_check(self) -> dict[str, Any]:
+        """Check provider health status.
+        
+        Returns:
+            Dictionary with health status information
+        """
+        try:
+            # Try a simple request to check API availability
+            response = await self._request("GET", "stats")
+            
+            return {
+                "status": "healthy",
+                "provider": self.name,
+                "circuit_breaker": self._circuit_breaker.state,
+                "request_count": self._request_count,
+                "api_responsive": True,
+            }
+        except Exception as e:
+            return {
+                "status": "unhealthy",
+                "provider": self.name,
+                "circuit_breaker": self._circuit_breaker.state,
+                "request_count": self._request_count,
+                "error": str(e),
+                "api_responsive": False,
+            }

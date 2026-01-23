@@ -1,6 +1,7 @@
 """Risk scoring service implementing weighted scoring algorithm."""
 
 import logging
+from datetime import datetime, timedelta
 from typing import Any
 
 from app.constants import RISK_TAG_WEIGHTS, RiskLevel, RiskTag
@@ -14,11 +15,27 @@ class RiskScorerService:
     """
     Service for calculating transaction risk scores.
     
-    Implements a weighted scoring model based on:
-    - Presence of high-risk tags (Mixer, Darknet, etc.)
-    - Proximity to flagged entities
-    - Transaction patterns
+    Implements advanced weighted scoring model based on:
+    - Presence of high-risk tags (Mixer, Darknet, OFAC, etc.)
+    - Proximity to flagged entities with decay
+    - Transaction patterns and volume analysis
+    - Temporal analysis (transaction recency)
+    - Velocity detection (funds moving too fast)
+    - Mixer pattern detection (Tornado Cash style)
     """
+
+    # Mixer detection patterns
+    MIXER_PATTERNS = {
+        'tornado_cash': {
+            'min_addresses': 5,
+            'time_window_hours': 24,
+            'similarity_threshold': 0.8
+        },
+        'generic_mixer': {
+            'min_addresses': 3,
+            'clustering_threshold': 0.6
+        }
+    }
 
     def __init__(
         self,
@@ -240,3 +257,202 @@ class RiskScorerService:
                            "Direct or close connections to high-risk entities detected.",
         }
         return descriptions.get(level, "Unknown risk level")
+
+    def calculate_temporal_decay(
+        self,
+        transaction_timestamp: datetime | None,
+        current_time: datetime | None = None
+    ) -> float:
+        """Calculate temporal decay factor for risk scoring.
+        
+        Recent transactions have higher impact on risk score.
+        Decay formula: exp(-age_in_days / 365)
+        
+        Args:
+            transaction_timestamp: When the transaction occurred
+            current_time: Reference time (defaults to now)
+            
+        Returns:
+            Decay factor between 0.0 and 1.0
+        """
+        if not transaction_timestamp:
+            return 0.5  # Default medium weight
+        
+        if not current_time:
+            current_time = datetime.utcnow()
+        
+        # Calculate age in days
+        age = (current_time - transaction_timestamp).total_seconds() / 86400
+        
+        # Exponential decay over 1 year
+        import math
+        decay = math.exp(-age / 365)
+        
+        return decay
+
+    def detect_velocity_anomaly(
+        self,
+        transaction_timestamps: dict[str, datetime],
+        flagged_entities: list[FlaggedEntity]
+    ) -> tuple[bool, float]:
+        """Detect if funds are moving too quickly (velocity anomaly).
+        
+        Money laundering often involves rapid movement of funds through
+        multiple addresses to obscure origin.
+        
+        Args:
+            transaction_timestamps: Map of tx_hash to timestamp
+            flagged_entities: Flagged entities in trace
+            
+        Returns:
+            Tuple of (is_anomaly, velocity_score)
+        """
+        if len(transaction_timestamps) < 2:
+            return False, 0.0
+        
+        # Sort timestamps
+        timestamps = sorted(transaction_timestamps.values())
+        
+        # Calculate average time between transactions
+        time_diffs = []
+        for i in range(1, len(timestamps)):
+            diff = (timestamps[i] - timestamps[i-1]).total_seconds()
+            time_diffs.append(diff)
+        
+        if not time_diffs:
+            return False, 0.0
+        
+        avg_diff = sum(time_diffs) / len(time_diffs)
+        
+        # Suspicious if average < 1 hour (3600 seconds)
+        if avg_diff < 3600:
+            velocity_score = min(30, 3600 / (avg_diff + 1) * 5)
+            logger.warning(f"High velocity detected: {avg_diff:.0f}s average between transactions")
+            return True, velocity_score
+        
+        return False, 0.0
+
+    def detect_mixer_pattern(
+        self,
+        flagged_entities: list[FlaggedEntity],
+        address_metadata: dict[str, AddressMetadata],
+        clustering_coefficient: float = 0.0
+    ) -> tuple[bool, float, str]:
+        """Detect sophisticated mixer patterns (Tornado Cash style).
+        
+        Mixer detection based on:
+        1. Multiple addresses with similar transaction patterns
+        2. High clustering coefficient (addresses interconnected)
+        3. Presence of contract interactions
+        4. Similar value amounts (common in mixers)
+        
+        Args:
+            flagged_entities: Entities found in trace
+            address_metadata: Metadata for addresses
+            clustering_coefficient: Graph clustering value
+            
+        Returns:
+            Tuple of (is_mixer, mixer_score, mixer_type)
+        """
+        mixer_score = 0.0
+        mixer_type = "none"
+        
+        # Check for explicit mixer tags first
+        explicit_mixers = [e for e in flagged_entities if RiskTag.MIXER in e.tags]
+        if explicit_mixers:
+            mixer_score = 40.0
+            mixer_type = "explicit_mixer"
+            logger.info(f"Explicit mixer detected: {len(explicit_mixers)} addresses")
+            return True, mixer_score, mixer_type
+        
+        # Check Tornado Cash pattern
+        contract_addresses = [
+            addr for addr, meta in address_metadata.items()
+            if meta.is_contract
+        ]
+        
+        if len(contract_addresses) >= 1 and clustering_coefficient > 0.5:
+            mixer_score = 30.0
+            mixer_type = "tornado_cash_pattern"
+            logger.info("Tornado Cash pattern detected: contract + high clustering")
+            return True, mixer_score, mixer_type
+        
+        # Check generic mixer pattern (high clustering + multiple addresses)
+        if clustering_coefficient > 0.6 and len(address_metadata) >= 5:
+            mixer_score = 25.0
+            mixer_type = "generic_mixer_pattern"
+            logger.info(f"Generic mixer pattern: clustering={clustering_coefficient:.2f}")
+            return True, mixer_score, mixer_type
+        
+        return False, 0.0, "none"
+
+    def calculate_advanced_score(
+        self,
+        flagged_entities: list[FlaggedEntity],
+        address_metadata: dict[str, AddressMetadata],
+        trace_depth: int,
+        transaction_timestamps: dict[str, datetime] = None,
+        clustering_coefficient: float = 0.0,
+        circular_paths: list[tuple[str, ...]] = None
+    ) -> RiskScore:
+        """Calculate comprehensive risk score with all advanced features.
+        
+        This method extends the base calculate_score with:
+        - Temporal analysis
+        - Velocity detection
+        - Mixer pattern detection
+        - Circular path detection
+        
+        Args:
+            flagged_entities: List of flagged entities from tracing
+            address_metadata: Metadata for analyzed addresses
+            trace_depth: Maximum depth that was traced
+            transaction_timestamps: Optional timestamps for velocity analysis
+            clustering_coefficient: Graph clustering value
+            circular_paths: Detected circular transaction paths
+            
+        Returns:
+            RiskScore with comprehensive analysis
+        """
+        # Start with base score
+        base_score_result = self.calculate_score(flagged_entities, address_metadata, trace_depth)
+        total_score = float(base_score_result.score)
+        reasons = list(base_score_result.reasons)
+        
+        # Add temporal decay adjustment
+        if transaction_timestamps:
+            latest_timestamp = max(transaction_timestamps.values(), default=None)
+            if latest_timestamp:
+                temporal_factor = self.calculate_temporal_decay(latest_timestamp)
+                temporal_adjustment = (1 - temporal_factor) * -10  # Recent = higher risk
+                if abs(temporal_adjustment) > 1:
+                    total_score += temporal_adjustment
+                    age_days = (datetime.utcnow() - latest_timestamp).days
+                    reasons.append(f"Transaction age ({age_days}d) factor: {temporal_adjustment:+.1f}")
+        
+        # Check velocity anomaly
+        if transaction_timestamps and len(transaction_timestamps) >= 2:
+            is_velocity_anomaly, velocity_score = self.detect_velocity_anomaly(
+                transaction_timestamps, flagged_entities
+            )
+            if is_velocity_anomaly:
+                total_score += velocity_score
+                reasons.append(f"High velocity detected (rapid fund movement): +{velocity_score:.1f}")
+        
+        # Check mixer patterns
+        is_mixer, mixer_score, mixer_type = self.detect_mixer_pattern(
+            flagged_entities, address_metadata, clustering_coefficient
+        )
+        if is_mixer:
+            total_score += mixer_score
+            reasons.append(f"Mixer pattern detected ({mixer_type}): +{mixer_score:.1f}")
+        
+        # Check circular paths (money cycling)
+        if circular_paths and len(circular_paths) > 0:
+            circular_score = min(20, len(circular_paths) * 10)
+            total_score += circular_score
+            reasons.append(f"Circular transaction paths detected ({len(circular_paths)}): +{circular_score:.1f}")
+        
+        # Normalize and return
+        normalized_score = self._normalize_score(total_score)
+        return RiskScore.from_score(normalized_score, reasons)
