@@ -62,12 +62,9 @@ function updateNavigation() {
     const mobileUserSection = document.getElementById('mobile-user-section');
     
     if (isLoggedIn()) {
-        // User is logged in - hide login button, show user menu
+        // User is logged in - hide login button and CTA, show user menu
         if (loginBtn) loginBtn.classList.add('hidden');
-        if (ctaBtn) {
-            ctaBtn.textContent = 'Dashboard';
-            ctaBtn.href = '/dashboard';
-        }
+        if (ctaBtn) ctaBtn.classList.add('hidden'); // Hide CTA when logged in
         if (userMenu) {
             userMenu.classList.remove('hidden');
             userMenu.classList.add('flex');
@@ -76,9 +73,10 @@ function updateNavigation() {
         if (mobileAuthSection) mobileAuthSection.classList.add('hidden');
         if (mobileUserSection) mobileUserSection.classList.remove('hidden');
     } else {
-        // User is not logged in - show login button, hide user menu
+        // User is not logged in - show login button and CTA, hide user menu
         if (loginBtn) loginBtn.classList.remove('hidden');
         if (ctaBtn) {
+            ctaBtn.classList.remove('hidden');
             ctaBtn.textContent = 'Start Analysis';
             ctaBtn.href = '/analyze';
         }
