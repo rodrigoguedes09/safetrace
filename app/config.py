@@ -33,6 +33,14 @@ class Settings(BaseSettings):
     blockchair_max_retries: int = 3
     blockchair_retry_delay: float = 1.0
 
+    # Blockchain.com API (free, no key required)
+    blockchain_com_enabled: bool = Field(
+        default=True,
+        description="Enable Blockchain.com provider for Bitcoin (free API)"
+    )
+    blockchain_com_base_url: str = "https://blockchain.info"
+    blockchain_com_requests_per_second: float = 5.0
+
     # Cache
     cache_backend: Literal["redis", "postgres", "memory"] = "redis"
     cache_ttl_seconds: int = 86400  # 24 hours

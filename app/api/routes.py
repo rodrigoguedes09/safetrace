@@ -12,11 +12,13 @@ from app.api.dependencies import (
     get_pdf_generator,
     get_tracer_service,
     get_history_service,
+    get_blockchain_provider,
 )
 from app.api.auth_middleware import check_rate_limit, get_current_user
 from app.config import Settings, get_settings
 from app.constants import SUPPORTED_CHAINS
 from app.core.cache import CacheBackend
+from app.core.provider import BlockchainProvider
 from app.core.exceptions import (
     APIRateLimitError,
     InvalidTransactionError,
@@ -251,6 +253,29 @@ async def health_check(
         version=settings.app_version,
         cache_status=cache_status,
     )
+
+
+@router.get(
+    "/providers/health",
+    summary="Provider Health Check",
+    description="Check health status of all blockchain data providers.",
+)
+async def providers_health_check(
+    provider: Annotated[BlockchainProvider, Depends(get_blockchain_provider)],
+) -> JSONResponse:
+    """Check health status of all blockchain providers."""
+    try:
+        health = await provider.health_check()
+        return JSONResponse(content=health)
+    except Exception as e:
+        logger.error(f"Provider health check failed: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "status": "error",
+                "error": str(e),
+            }
+        )
 
 
 @router.get(

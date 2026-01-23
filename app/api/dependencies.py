@@ -13,6 +13,8 @@ from app.config import Settings, get_settings
 from app.core.cache import CacheBackend
 from app.core.provider import BlockchainProvider
 from app.providers.blockchair import BlockchairProvider
+from app.providers.blockchain_com import BlockchainComProvider
+from app.providers.multi_provider import MultiProviderManager
 from app.services.pdf_generator import PDFGeneratorService
 from app.services.risk_scorer import RiskScorerService
 from app.services.tracer import TransactionTracerService
@@ -73,16 +75,36 @@ async def get_cache_backend(
 async def get_blockchain_provider(
     settings: Annotated[Settings, Depends(get_settings)]
 ) -> BlockchainProvider:
-    """Get or create blockchain provider instance."""
+    """Get or create blockchain provider instance.
+    
+    Uses MultiProviderManager to coordinate multiple providers:
+    - Blockchair: Primary provider for 40+ chains
+    - Blockchain.com: Free provider for Bitcoin with full tx history
+    """
     global _provider_instance
     
     if _provider_instance is None:
-        _provider_instance = BlockchairProvider(
+        # Create Blockchair provider (required)
+        blockchair = BlockchairProvider(
             api_key=settings.blockchair_api_key.get_secret_value(),
             base_url=settings.blockchair_base_url,
             requests_per_second=settings.blockchair_requests_per_second,
             max_retries=settings.blockchair_max_retries,
             retry_delay=settings.blockchair_retry_delay,
+        )
+        
+        # Create Blockchain.com provider for Bitcoin (optional, free)
+        blockchain_com = None
+        if settings.blockchain_com_enabled:
+            blockchain_com = BlockchainComProvider(
+                base_url=settings.blockchain_com_base_url,
+                requests_per_second=settings.blockchain_com_requests_per_second,
+            )
+        
+        # Use multi-provider manager
+        _provider_instance = MultiProviderManager(
+            blockchair_provider=blockchair,
+            blockchain_com_provider=blockchain_com,
         )
     
     return _provider_instance

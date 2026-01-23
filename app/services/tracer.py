@@ -156,7 +156,7 @@ class TransactionTracerService:
         queue: list[TraceNode] = []  # heapq
         source_addresses = initial_tx.get_source_addresses()
         
-        logger.debug(f"[Tracer] Found {len(source_addresses)} source addresses")
+        logger.info(f"[Tracer] Found {len(source_addresses)} source addresses from initial transaction")
 
         for address in source_addresses:
             if address:
@@ -357,7 +357,11 @@ class TransactionTracerService:
         node: TraceNode,
         state: TraceState,
     ) -> list[TraceNode]:
-        """Trace inputs for UTXO-based chains with priority scoring."""
+        """Trace inputs for UTXO-based chains with priority scoring.
+        
+        For Bitcoin with Blockchain.com provider, can also trace via
+        address transaction history for more comprehensive coverage.
+        """
         new_nodes: list[TraceNode] = []
 
         try:
@@ -393,6 +397,9 @@ class TransactionTracerService:
                     priority_score=priority,
                 )
                 new_nodes.append(new_node)
+                
+            logger.info(f"[Tracer UTXO] Found {len(new_nodes)} input transactions from {node.tx_hash[:16]}...")
+                
         except Exception as e:
             logger.warning(f"Failed to trace UTXO inputs for {node.tx_hash}: {e}")
 
@@ -405,7 +412,17 @@ class TransactionTracerService:
         node: TraceNode,
         state: TraceState,
     ) -> list[TraceNode]:
-        """Trace inputs for Account-based chains with temporal analysis."""
+        """Trace inputs for Account-based chains with temporal analysis.
+        
+        NOTE: For Account-based chains (Ethereum, BSC, etc.), tracing is limited because:
+        - Blockchair API doesn't provide easy access to full transaction history per address
+        - We can only trace the sender and internal transactions from the current transaction
+        - For deeper tracing, would need address transaction history API
+        
+        The tracing focuses on:
+        1. Sender of the transaction (if different from current node)
+        2. Internal transactions (contract calls within the transaction)
+        """
         new_nodes: list[TraceNode] = []
 
         try:
@@ -451,29 +468,7 @@ class TransactionTracerService:
                 else:
                     logger.info(f"[Tracer Inputs] Sender {tx.sender[:16]}... already visited")
             elif tx.sender and tx.sender.lower() == node.address.lower():
-                logger.info(f"[Tracer Inputs] Sender {tx.sender[:16]}... is the same as current node - checking recipient instead")
-                # If sender is the current node, trace the recipient (following the money forward)
-                if tx.recipient:
-                    recipient_key = f"{chain}:{tx.recipient.lower()}"
-                    if recipient_key not in state.visited_addresses:
-                        logger.info(f"[Tracer Inputs] Adding recipient {tx.recipient[:16]}... at depth {node.depth + 1}")
-                        # Track connection
-                        node_addr = node.address.lower()
-                        if node_addr not in state.address_connections:
-                            state.address_connections[node_addr] = set()
-                        state.address_connections[node_addr].add(tx.recipient.lower())
-                        
-                        new_nodes.append(
-                            TraceNode(
-                                tx_hash=node.tx_hash,
-                                address=tx.recipient,
-                                depth=node.depth + 1,
-                                parent_tx=node.tx_hash,
-                                priority_score=0.0,
-                            )
-                        )
-                    else:
-                        logger.info(f"[Tracer Inputs] Recipient {tx.recipient[:16]}... already visited")
+                logger.info(f"[Tracer Inputs] Sender is same as node - limited tracing for Account chains (internal txs only)")
 
             # Trace internal transactions if contract
             if tx.is_contract_call and chain_config.has_internal_txs:
