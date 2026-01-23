@@ -420,8 +420,8 @@ class TransactionTracerService:
             if tx.timestamp:
                 state.transaction_timestamps[node.tx_hash.lower()] = tx.timestamp
             
-            # Trace sender
-            if tx.sender:
+            # Trace sender (only if it's not the same as current address being processed)
+            if tx.sender and tx.sender.lower() != node.address.lower():
                 sender_key = f"{chain}:{tx.sender.lower()}"
                 if sender_key not in state.visited_addresses:
                     logger.info(f"[Tracer Inputs] Adding sender {tx.sender[:16]}... at depth {node.depth + 1}")
@@ -450,13 +450,39 @@ class TransactionTracerService:
                     )
                 else:
                     logger.info(f"[Tracer Inputs] Sender {tx.sender[:16]}... already visited")
+            elif tx.sender and tx.sender.lower() == node.address.lower():
+                logger.info(f"[Tracer Inputs] Sender {tx.sender[:16]}... is the same as current node - checking recipient instead")
+                # If sender is the current node, trace the recipient (following the money forward)
+                if tx.recipient:
+                    recipient_key = f"{chain}:{tx.recipient.lower()}"
+                    if recipient_key not in state.visited_addresses:
+                        logger.info(f"[Tracer Inputs] Adding recipient {tx.recipient[:16]}... at depth {node.depth + 1}")
+                        # Track connection
+                        node_addr = node.address.lower()
+                        if node_addr not in state.address_connections:
+                            state.address_connections[node_addr] = set()
+                        state.address_connections[node_addr].add(tx.recipient.lower())
+                        
+                        new_nodes.append(
+                            TraceNode(
+                                tx_hash=node.tx_hash,
+                                address=tx.recipient,
+                                depth=node.depth + 1,
+                                parent_tx=node.tx_hash,
+                                priority_score=0.0,
+                            )
+                        )
+                    else:
+                        logger.info(f"[Tracer Inputs] Recipient {tx.recipient[:16]}... already visited")
 
             # Trace internal transactions if contract
             if tx.is_contract_call and chain_config.has_internal_txs:
+                logger.info(f"[Tracer Inputs] Checking {len(tx.internal_transactions)} internal transactions")
                 for itx in tx.internal_transactions:
-                    if itx.from_address:
+                    if itx.from_address and itx.from_address.lower() != node.address.lower():
                         from_key = f"{chain}:{itx.from_address.lower()}"
                         if from_key not in state.visited_addresses:
+                            logger.info(f"[Tracer Inputs] Adding internal tx sender {itx.from_address[:16]}... at depth {node.depth + 1}")
                             # Track connection
                             node_addr = node.address.lower()
                             if node_addr not in state.address_connections:
@@ -473,6 +499,8 @@ class TransactionTracerService:
                                     priority_score=priority,
                                 )
                             )
+                        else:
+                            logger.info(f"[Tracer Inputs] Internal tx sender {itx.from_address[:16]}... already visited")
         except Exception as e:
             logger.warning(f"Failed to trace account inputs for {node.tx_hash}: {e}")
 
