@@ -2,137 +2,368 @@
 
 {% block title %}Dashboard - SafeTrace{% endblock %}
 
+{% block extra_head %}
+<!-- Chart.js for sparklines and charts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    .chain-card {
+        transition: all 0.2s ease;
+    }
+    .chain-card:hover {
+        transform: translateY(-2px);
+        border-color: rgba(59, 130, 246, 0.5);
+    }
+    .activity-indicator {
+        animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+    .heatmap-cell {
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    .heatmap-cell:hover {
+        transform: scale(1.1);
+        z-index: 10;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<section class="py-10 relative min-h-screen">
+<section class="py-8 min-h-screen">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Header -->
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-4">
             <div>
                 <h1 class="text-3xl font-bold mb-2">Dashboard</h1>
-                <p class="text-gray-400">Welcome back, <span id="user-name">User</span>!</p>
+                <p class="text-gray-400">Welcome back, <span id="user-name" class="text-white font-medium">User</span></p>
             </div>
-            <a href="/analyze" class="mt-4 md:mt-0 btn-primary">
-                <svg class="inline w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                </svg>
-                New Analysis
-            </a>
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-2 text-sm text-gray-400">
+                    <span class="w-2 h-2 rounded-full bg-risk-safe activity-indicator"></span>
+                    <span>All Systems Operational</span>
+                </div>
+                <a href="/analyze" class="btn-primary flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                    </svg>
+                    New Analysis
+                </a>
+            </div>
         </div>
         
-        <!-- Stats Cards -->
+        <!-- Stats Overview -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- API Requests -->
             <div class="glass-card rounded-xl p-6">
                 <div class="flex items-center justify-between mb-4">
-                    <span class="text-gray-400 text-sm">API Requests Today</span>
-                    <svg class="w-5 h-5 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
-                    </svg>
+                    <span class="text-sm font-medium text-gray-400">API Requests Today</span>
+                    <div class="w-10 h-10 bg-accent/20 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                        </svg>
+                    </div>
                 </div>
-                <p class="text-3xl font-bold" id="stat-requests-today">0</p>
-                <p class="text-sm text-gray-400 mt-1">of <span id="stat-limit">100</span> daily limit</p>
-                <div class="mt-2 h-2 bg-gray-700 rounded-full overflow-hidden">
-                    <div id="usage-bar" class="h-full bg-primary-500 transition-all" style="width: 0%"></div>
+                <p class="text-3xl font-bold mb-1" id="stat-requests-today">0</p>
+                <div class="flex items-center justify-between text-sm">
+                    <span class="text-gray-500">of <span id="stat-limit">100</span> limit</span>
+                    <span class="text-risk-safe text-xs">+12% today</span>
+                </div>
+                <div class="mt-3 h-2 bg-forensic-700 rounded-full overflow-hidden">
+                    <div id="usage-bar" class="h-full bg-gradient-to-r from-accent to-accent-light transition-all duration-500" style="width: 0%"></div>
                 </div>
             </div>
             
+            <!-- Total Analyses -->
             <div class="glass-card rounded-xl p-6">
                 <div class="flex items-center justify-between mb-4">
-                    <span class="text-gray-400 text-sm">Total Analyses</span>
-                    <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
-                    </svg>
+                    <span class="text-sm font-medium text-gray-400">Total Analyses</span>
+                    <div class="w-10 h-10 bg-risk-safe/20 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-risk-safe" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                        </svg>
+                    </div>
                 </div>
-                <p class="text-3xl font-bold" id="stat-total-analyses">0</p>
-                <p class="text-sm text-gray-400 mt-1">all time</p>
+                <p class="text-3xl font-bold mb-1" id="stat-total-analyses">0</p>
+                <div class="flex items-center gap-2">
+                    <div class="flex-1 h-8" id="mini-chart-analyses"></div>
+                </div>
             </div>
             
+            <!-- High Risk Found -->
             <div class="glass-card rounded-xl p-6">
                 <div class="flex items-center justify-between mb-4">
-                    <span class="text-gray-400 text-sm">High Risk Found</span>
-                    <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                    </svg>
+                    <span class="text-sm font-medium text-gray-400">High Risk Detected</span>
+                    <div class="w-10 h-10 bg-risk-critical/20 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-risk-critical" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                    </div>
                 </div>
-                <p class="text-3xl font-bold" id="stat-high-risk">0</p>
-                <p class="text-sm text-gray-400 mt-1">flagged transactions</p>
+                <p class="text-3xl font-bold mb-1" id="stat-high-risk">0</p>
+                <p class="text-sm text-gray-500">Flagged transactions</p>
             </div>
             
+            <!-- Account Status -->
             <div class="glass-card rounded-xl p-6">
                 <div class="flex items-center justify-between mb-4">
-                    <span class="text-gray-400 text-sm">Account Type</span>
-                    <svg class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
-                    </svg>
+                    <span class="text-sm font-medium text-gray-400">Account Type</span>
+                    <div class="w-10 h-10 bg-entity-defi/20 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-entity-defi" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+                        </svg>
+                    </div>
                 </div>
-                <p class="text-3xl font-bold" id="stat-account-type">Free</p>
-                <p class="text-sm text-gray-400 mt-1">
-                    <a href="/pricing" class="text-primary-400 hover:underline" id="upgrade-link">Upgrade to Pro</a>
-                </p>
+                <p class="text-2xl font-bold mb-1" id="stat-account-type">Free</p>
+                <a href="/pricing" class="text-sm text-accent hover:underline" id="upgrade-link">Upgrade to Pro →</a>
             </div>
         </div>
         
-        <!-- Main Content Grid -->
+        <!-- Main Grid -->
         <div class="grid lg:grid-cols-3 gap-8">
-            <!-- Analysis History -->
-            <div class="lg:col-span-2">
+            <!-- Left Column: Blockchain Heatmap -->
+            <div class="lg:col-span-2 space-y-8">
+                <!-- Blockchain Activity Heatmap -->
                 <div class="glass-card rounded-xl p-6">
                     <div class="flex items-center justify-between mb-6">
-                        <h2 class="text-xl font-semibold">Recent Analyses</h2>
-                        <a href="/analyze" class="text-sm text-primary-400 hover:underline">New Analysis</a>
+                        <div>
+                            <h2 class="text-xl font-bold">Blockchain Activity</h2>
+                            <p class="text-sm text-gray-400 mt-1">Transaction volume across supported chains</p>
+                        </div>
+                        <select class="bg-forensic-700 border border-forensic-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent">
+                            <option>Last 24 Hours</option>
+                            <option>Last 7 Days</option>
+                            <option>Last 30 Days</option>
+                        </select>
                     </div>
                     
-                    <div id="history-list" class="space-y-4">
-                        <!-- History will be loaded here -->
-                        <div class="text-center py-8 text-gray-400" id="no-history-message">
-                            <svg class="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                            <p>No analyses yet</p>
-                            <a href="/analyze" class="text-primary-400 hover:underline mt-2 block">Run your first analysis</a>
+                    <!-- Heatmap Grid -->
+                    <div class="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2" id="blockchain-heatmap">
+                        <!-- Ethereum -->
+                        <div class="heatmap-cell aspect-square rounded-lg flex flex-col items-center justify-center p-2" style="background: rgba(0, 214, 143, 0.6);" data-chain="ethereum" title="Ethereum: High Activity">
+                            <span class="text-xs font-bold">ETH</span>
+                            <span class="text-[10px] opacity-70">2.4K</span>
+                        </div>
+                        <!-- Bitcoin -->
+                        <div class="heatmap-cell aspect-square rounded-lg flex flex-col items-center justify-center p-2" style="background: rgba(255, 184, 0, 0.6);" data-chain="bitcoin" title="Bitcoin: Medium Activity">
+                            <span class="text-xs font-bold">BTC</span>
+                            <span class="text-[10px] opacity-70">1.8K</span>
+                        </div>
+                        <!-- BSC -->
+                        <div class="heatmap-cell aspect-square rounded-lg flex flex-col items-center justify-center p-2" style="background: rgba(0, 196, 140, 0.5);" data-chain="bsc" title="BSC: High Activity">
+                            <span class="text-xs font-bold">BSC</span>
+                            <span class="text-[10px] opacity-70">1.5K</span>
+                        </div>
+                        <!-- Polygon -->
+                        <div class="heatmap-cell aspect-square rounded-lg flex flex-col items-center justify-center p-2" style="background: rgba(139, 92, 246, 0.5);" data-chain="polygon" title="Polygon: Medium Activity">
+                            <span class="text-xs font-bold">MATIC</span>
+                            <span class="text-[10px] opacity-70">980</span>
+                        </div>
+                        <!-- Arbitrum -->
+                        <div class="heatmap-cell aspect-square rounded-lg flex flex-col items-center justify-center p-2" style="background: rgba(59, 130, 246, 0.5);" data-chain="arbitrum" title="Arbitrum: Medium Activity">
+                            <span class="text-xs font-bold">ARB</span>
+                            <span class="text-[10px] opacity-70">750</span>
+                        </div>
+                        <!-- Optimism -->
+                        <div class="heatmap-cell aspect-square rounded-lg flex flex-col items-center justify-center p-2" style="background: rgba(255, 59, 59, 0.4);" data-chain="optimism" title="Optimism: Low Activity">
+                            <span class="text-xs font-bold">OP</span>
+                            <span class="text-[10px] opacity-70">420</span>
+                        </div>
+                        <!-- Base -->
+                        <div class="heatmap-cell aspect-square rounded-lg flex flex-col items-center justify-center p-2" style="background: rgba(59, 130, 246, 0.4);" data-chain="base" title="Base: Low Activity">
+                            <span class="text-xs font-bold">BASE</span>
+                            <span class="text-[10px] opacity-70">380</span>
+                        </div>
+                        <!-- Avalanche -->
+                        <div class="heatmap-cell aspect-square rounded-lg flex flex-col items-center justify-center p-2" style="background: rgba(255, 107, 53, 0.4);" data-chain="avalanche" title="Avalanche: Low Activity">
+                            <span class="text-xs font-bold">AVAX</span>
+                            <span class="text-[10px] opacity-70">290</span>
+                        </div>
+                        <!-- Fantom -->
+                        <div class="heatmap-cell aspect-square rounded-lg flex flex-col items-center justify-center p-2" style="background: rgba(59, 130, 246, 0.3);" data-chain="fantom" title="Fantom: Very Low">
+                            <span class="text-xs font-bold">FTM</span>
+                            <span class="text-[10px] opacity-70">180</span>
+                        </div>
+                        <!-- Gnosis -->
+                        <div class="heatmap-cell aspect-square rounded-lg flex flex-col items-center justify-center p-2" style="background: rgba(16, 185, 129, 0.3);" data-chain="gnosis" title="Gnosis: Very Low">
+                            <span class="text-xs font-bold">GNO</span>
+                            <span class="text-[10px] opacity-70">95</span>
+                        </div>
+                        <!-- zkSync -->
+                        <div class="heatmap-cell aspect-square rounded-lg flex flex-col items-center justify-center p-2" style="background: rgba(139, 92, 246, 0.3);" data-chain="zksync" title="zkSync: Very Low">
+                            <span class="text-xs font-bold">ZKS</span>
+                            <span class="text-[10px] opacity-70">85</span>
+                        </div>
+                        <!-- Litecoin -->
+                        <div class="heatmap-cell aspect-square rounded-lg flex flex-col items-center justify-center p-2" style="background: rgba(148, 163, 184, 0.3);" data-chain="litecoin" title="Litecoin: Minimal">
+                            <span class="text-xs font-bold">LTC</span>
+                            <span class="text-[10px] opacity-70">65</span>
+                        </div>
+                        <!-- Dogecoin -->
+                        <div class="heatmap-cell aspect-square rounded-lg flex flex-col items-center justify-center p-2" style="background: rgba(255, 184, 0, 0.3);" data-chain="dogecoin" title="Dogecoin: Minimal">
+                            <span class="text-xs font-bold">DOGE</span>
+                            <span class="text-[10px] opacity-70">45</span>
+                        </div>
+                        <!-- BCH -->
+                        <div class="heatmap-cell aspect-square rounded-lg flex flex-col items-center justify-center p-2" style="background: rgba(16, 185, 129, 0.2);" data-chain="bch" title="Bitcoin Cash: Minimal">
+                            <span class="text-xs font-bold">BCH</span>
+                            <span class="text-[10px] opacity-70">32</span>
+                        </div>
+                        <!-- Dash -->
+                        <div class="heatmap-cell aspect-square rounded-lg flex flex-col items-center justify-center p-2" style="background: rgba(59, 130, 246, 0.2);" data-chain="dash" title="Dash: Minimal">
+                            <span class="text-xs font-bold">DASH</span>
+                            <span class="text-[10px] opacity-70">18</span>
+                        </div>
+                        <!-- More -->
+                        <div class="heatmap-cell aspect-square rounded-lg flex flex-col items-center justify-center p-2 bg-forensic-700 border border-dashed border-forensic-500 cursor-pointer hover:border-accent" title="View all 41+ chains">
+                            <span class="text-xs text-gray-400">+26</span>
+                            <span class="text-[10px] text-gray-500">more</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Legend -->
+                    <div class="flex items-center justify-between mt-6 pt-4 border-t border-forensic-700">
+                        <div class="flex items-center gap-4">
+                            <span class="text-xs text-gray-400">Activity Level:</span>
+                            <div class="flex items-center gap-2">
+                                <div class="w-3 h-3 rounded bg-forensic-600"></div>
+                                <span class="text-xs text-gray-500">Low</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="w-3 h-3 rounded" style="background: rgba(255, 184, 0, 0.5)"></div>
+                                <span class="text-xs text-gray-500">Medium</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="w-3 h-3 rounded" style="background: rgba(0, 214, 143, 0.6)"></div>
+                                <span class="text-xs text-gray-500">High</span>
+                            </div>
+                        </div>
+                        <button class="text-xs text-accent hover:underline">View Details →</button>
+                    </div>
+                </div>
+                
+                <!-- Recent Analyses -->
+                <div class="glass-card rounded-xl p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-xl font-bold">Recent Analyses</h2>
+                        <a href="/analyze" class="text-sm text-accent hover:underline">New Analysis →</a>
+                    </div>
+                    
+                    <div id="history-list" class="space-y-3">
+                        <!-- Loading State -->
+                        <div id="history-loading" class="space-y-3">
+                            <div class="skeleton h-16 rounded-lg"></div>
+                            <div class="skeleton h-16 rounded-lg"></div>
+                            <div class="skeleton h-16 rounded-lg"></div>
+                        </div>
+                        
+                        <!-- No History Message -->
+                        <div class="hidden text-center py-12" id="no-history-message">
+                            <div class="w-16 h-16 bg-forensic-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                            <p class="text-gray-400 mb-2">No analyses yet</p>
+                            <a href="/analyze" class="text-accent hover:underline text-sm">Run your first analysis →</a>
+                        </div>
+                        
+                        <!-- History Items Container -->
+                        <div id="history-items"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Column: Sidebar -->
+            <div class="space-y-8">
+                <!-- Risk Distribution -->
+                <div class="glass-card rounded-xl p-6">
+                    <h2 class="text-lg font-bold mb-4">Risk Distribution</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="text-gray-400">Low Risk</span>
+                                <span class="text-risk-safe font-medium">68%</span>
+                            </div>
+                            <div class="h-2 bg-forensic-700 rounded-full overflow-hidden">
+                                <div class="h-full bg-risk-safe rounded-full" style="width: 68%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="text-gray-400">Medium Risk</span>
+                                <span class="text-risk-medium font-medium">22%</span>
+                            </div>
+                            <div class="h-2 bg-forensic-700 rounded-full overflow-hidden">
+                                <div class="h-full bg-risk-medium rounded-full" style="width: 22%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="text-gray-400">High Risk</span>
+                                <span class="text-risk-high font-medium">7%</span>
+                            </div>
+                            <div class="h-2 bg-forensic-700 rounded-full overflow-hidden">
+                                <div class="h-full bg-risk-high rounded-full" style="width: 7%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="text-gray-400">Critical</span>
+                                <span class="text-risk-critical font-medium">3%</span>
+                            </div>
+                            <div class="h-2 bg-forensic-700 rounded-full overflow-hidden">
+                                <div class="h-full bg-risk-critical rounded-full" style="width: 3%"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            
-            <!-- Sidebar -->
-            <div class="space-y-8">
                 
                 <!-- Account Info -->
                 <div class="glass-card rounded-xl p-6">
-                    <h2 class="text-xl font-semibold mb-4">Account</h2>
+                    <h2 class="text-lg font-bold mb-4">Account</h2>
                     <div class="space-y-4">
                         <div>
-                            <span class="text-gray-400 text-sm">Email</span>
-                            <p id="user-email" class="truncate">user@example.com</p>
+                            <span class="text-xs text-gray-500 uppercase tracking-wide">Email</span>
+                            <p id="user-email" class="truncate text-sm mt-1">user@example.com</p>
                         </div>
                         <div>
-                            <span class="text-gray-400 text-sm">Member Since</span>
-                            <p id="user-created">January 2026</p>
+                            <span class="text-xs text-gray-500 uppercase tracking-wide">Member Since</span>
+                            <p id="user-created" class="text-sm mt-1">January 2026</p>
                         </div>
                         <div>
-                            <span class="text-gray-400 text-sm">Plan</span>
-                            <p id="user-plan">
-                                <span class="inline-block px-2 py-1 bg-gray-700 rounded text-sm">Free</span>
+                            <span class="text-xs text-gray-500 uppercase tracking-wide">Plan</span>
+                            <p id="user-plan" class="mt-1">
+                                <span class="inline-block px-2 py-1 bg-forensic-700 rounded text-sm">Free</span>
                             </p>
                         </div>
                     </div>
-                    <hr class="border-gray-700 my-4">
-                    <button onclick="logout()" class="w-full text-red-400 hover:text-red-300 text-sm transition">
+                    <hr class="border-forensic-600 my-4">
+                    <button onclick="logout()" class="w-full text-risk-critical hover:text-risk-critical/80 text-sm transition flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                        </svg>
                         Sign Out
                     </button>
                 </div>
                 
-                <!-- Usage Tips -->
+                <!-- Quick Tips -->
                 <div class="glass-card rounded-xl p-6">
-                    <h2 class="text-xl font-semibold mb-4">💡 Tips</h2>
+                    <h2 class="text-lg font-bold mb-4">💡 Pro Tips</h2>
                     <ul class="space-y-3 text-sm text-gray-400">
-                        <li class="flex items-start">
-                            <span class="text-primary-400 mr-2">•</span>
-                            Use higher trace depth for more thorough analysis
+                        <li class="flex items-start gap-2">
+                            <span class="text-accent">→</span>
+                            <span>Use depth 5+ for thorough mixer detection</span>
                         </li>
-                        <li class="flex items-start">
-                            <span class="text-primary-400 mr-2">•</span>
-                            Download PDF reports for compliance records
+                        <li class="flex items-start gap-2">
+                            <span class="text-accent">→</span>
+                            <span>Download PDF reports for compliance records</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-accent">→</span>
+                            <span>Check graph view for visual transaction flow</span>
                         </li>
                     </ul>
                 </div>
@@ -144,4 +375,15 @@
 
 {% block extra_scripts %}
 <script src="/static/js/dashboard.js"></script>
+<script>
+    // Initialize heatmap interactions
+    document.querySelectorAll('.heatmap-cell').forEach(cell => {
+        cell.addEventListener('click', () => {
+            const chain = cell.dataset.chain;
+            if (chain) {
+                window.location.href = `/analyze?chain=${chain}`;
+            }
+        });
+    });
+</script>
 {% endblock %}

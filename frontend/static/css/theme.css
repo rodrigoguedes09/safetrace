@@ -1,0 +1,891 @@
+/**
+ * SafeTrace - Digital Forensics Theme
+ * Enterprise-grade Web3 styling for KYT analysis
+ */
+
+/* ============================================
+   FONTS
+   ============================================ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+/* ============================================
+   CSS VARIABLES - DARK THEME (DEFAULT)
+   ============================================ */
+:root {
+    /* Base colors */
+    --bg-primary: #0B0E11;
+    --bg-secondary: #12171D;
+    --bg-tertiary: #1A2028;
+    --bg-elevated: #232B35;
+    
+    /* Surface colors */
+    --surface-card: rgba(26, 32, 40, 0.8);
+    --surface-hover: rgba(35, 43, 53, 0.8);
+    --surface-border: rgba(255, 255, 255, 0.08);
+    
+    /* Text colors */
+    --text-primary: #F8FAFC;
+    --text-secondary: #94A3B8;
+    --text-muted: #64748B;
+    --text-disabled: #475569;
+    
+    /* Brand colors */
+    --accent-primary: #3B82F6;
+    --accent-secondary: #60A5FA;
+    --accent-glow: rgba(59, 130, 246, 0.4);
+    
+    /* Semantic colors - Risk */
+    --risk-critical: #FF3B3B;
+    --risk-critical-bg: rgba(255, 59, 59, 0.15);
+    --risk-high: #FF6B35;
+    --risk-high-bg: rgba(255, 107, 53, 0.15);
+    --risk-medium: #FFB800;
+    --risk-medium-bg: rgba(255, 184, 0, 0.15);
+    --risk-low: #00C48C;
+    --risk-low-bg: rgba(0, 196, 140, 0.15);
+    --risk-safe: #00D68F;
+    --risk-safe-bg: rgba(0, 214, 143, 0.15);
+    
+    /* Entity colors */
+    --entity-exchange: #3B82F6;
+    --entity-mixer: #EF4444;
+    --entity-sanctioned: #DC2626;
+    --entity-scammer: #F97316;
+    --entity-defi: #8B5CF6;
+    --entity-wallet: #6B7280;
+    --entity-contract: #10B981;
+    
+    /* Graph colors */
+    --graph-node-default: #3B82F6;
+    --graph-node-flagged: #EF4444;
+    --graph-edge-default: #475569;
+    --graph-edge-high-volume: #60A5FA;
+    
+    /* Transitions */
+    --transition-fast: 150ms;
+    --transition-normal: 250ms;
+    --transition-slow: 350ms;
+    
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+    --shadow-glow: 0 0 30px var(--accent-glow);
+    
+    /* Radii */
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+}
+
+/* ============================================
+   LIGHT THEME
+   ============================================ */
+.light-theme {
+    --bg-primary: #FFFFFF;
+    --bg-secondary: #F8FAFC;
+    --bg-tertiary: #F1F5F9;
+    --bg-elevated: #E2E8F0;
+    
+    --surface-card: rgba(255, 255, 255, 0.9);
+    --surface-hover: rgba(241, 245, 249, 0.9);
+    --surface-border: rgba(0, 0, 0, 0.1);
+    
+    --text-primary: #0F172A;
+    --text-secondary: #475569;
+    --text-muted: #64748B;
+    --text-disabled: #94A3B8;
+    
+    --accent-primary: #2563EB;
+    --accent-secondary: #3B82F6;
+    --accent-glow: rgba(37, 99, 235, 0.3);
+    
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.15);
+}
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Forensics background pattern */
+.forensics-bg {
+    background: 
+        radial-gradient(ellipse at 20% 0%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 100%, rgba(139, 92, 246, 0.06) 0%, transparent 50%),
+        linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+    min-height: 100vh;
+}
+
+/* Grid background for investigation pages */
+.grid-bg {
+    background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    background-size: 50px 50px;
+}
+
+/* ============================================
+   TYPOGRAPHY
+   ============================================ */
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+}
+
+h1 { font-size: 2.5rem; line-height: 1.2; }
+h2 { font-size: 1.875rem; line-height: 1.3; }
+h3 { font-size: 1.5rem; line-height: 1.4; }
+h4 { font-size: 1.25rem; line-height: 1.4; }
+
+/* Monospace for hashes and addresses */
+.font-mono,
+.hash,
+.address,
+code,
+pre {
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 0.875em;
+    letter-spacing: -0.02em;
+}
+
+.hash {
+    color: var(--accent-secondary);
+    background: rgba(59, 130, 246, 0.1);
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+}
+
+.address {
+    color: var(--text-secondary);
+}
+
+/* ============================================
+   CARDS & SURFACES
+   ============================================ */
+.card {
+    background: var(--surface-card);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--surface-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    transition: all var(--transition-normal) ease;
+}
+
+.card:hover {
+    border-color: rgba(59, 130, 246, 0.3);
+    box-shadow: var(--shadow-lg);
+}
+
+.card-elevated {
+    background: var(--bg-elevated);
+    border: 1px solid var(--surface-border);
+    border-radius: var(--radius-md);
+}
+
+.glass-panel {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius-lg);
+}
+
+/* ============================================
+   RISK INDICATORS
+   ============================================ */
+.risk-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.risk-badge.critical {
+    background: var(--risk-critical-bg);
+    color: var(--risk-critical);
+    border: 1px solid var(--risk-critical);
+}
+
+.risk-badge.high {
+    background: var(--risk-high-bg);
+    color: var(--risk-high);
+    border: 1px solid var(--risk-high);
+}
+
+.risk-badge.medium {
+    background: var(--risk-medium-bg);
+    color: var(--risk-medium);
+    border: 1px solid var(--risk-medium);
+}
+
+.risk-badge.low {
+    background: var(--risk-low-bg);
+    color: var(--risk-low);
+    border: 1px solid var(--risk-low);
+}
+
+.risk-badge.safe {
+    background: var(--risk-safe-bg);
+    color: var(--risk-safe);
+    border: 1px solid var(--risk-safe);
+}
+
+/* Risk Score Circle */
+.risk-score-circle {
+    position: relative;
+    width: 160px;
+    height: 160px;
+}
+
+.risk-score-circle svg {
+    transform: rotate(-90deg);
+}
+
+.risk-score-circle .track {
+    stroke: var(--bg-tertiary);
+    fill: none;
+    stroke-width: 12;
+}
+
+.risk-score-circle .progress {
+    fill: none;
+    stroke-width: 12;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1s ease-out;
+}
+
+.risk-score-circle .score-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.risk-score-circle .score-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.risk-score-circle .score-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+/* ============================================
+   ENTITY BADGES
+   ============================================ */
+.entity-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.entity-badge.exchange {
+    background: rgba(59, 130, 246, 0.15);
+    color: var(--entity-exchange);
+}
+
+.entity-badge.mixer {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--entity-mixer);
+}
+
+.entity-badge.sanctioned {
+    background: rgba(220, 38, 38, 0.2);
+    color: var(--entity-sanctioned);
+    animation: pulse 2s infinite;
+}
+
+.entity-badge.scammer {
+    background: rgba(249, 115, 22, 0.15);
+    color: var(--entity-scammer);
+}
+
+.entity-badge.defi {
+    background: rgba(139, 92, 246, 0.15);
+    color: var(--entity-defi);
+}
+
+.entity-badge.verified {
+    position: relative;
+}
+
+.entity-badge.verified::after {
+    content: '✓';
+    margin-left: 4px;
+    color: var(--risk-safe);
+}
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 24px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    transition: all var(--transition-fast) ease;
+    cursor: pointer;
+    border: none;
+    outline: none;
+}
+
+.btn-primary {
+    background: var(--accent-primary);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--accent-secondary);
+    box-shadow: var(--shadow-glow);
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background: transparent;
+    color: var(--accent-primary);
+    border: 2px solid var(--accent-primary);
+}
+
+.btn-secondary:hover {
+    background: var(--accent-primary);
+    color: white;
+}
+
+.btn-ghost {
+    background: transparent;
+    color: var(--text-secondary);
+}
+
+.btn-ghost:hover {
+    background: var(--surface-hover);
+    color: var(--text-primary);
+}
+
+.btn-danger {
+    background: var(--risk-critical);
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #E63535;
+}
+
+/* ============================================
+   INPUTS
+   ============================================ */
+.input {
+    width: 100%;
+    padding: 12px 16px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--surface-border);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    transition: all var(--transition-fast) ease;
+}
+
+.input:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.input::placeholder {
+    color: var(--text-muted);
+}
+
+.input-mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+}
+
+/* ============================================
+   DATA TABLE
+   ============================================ */
+.data-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.data-table th {
+    text-align: left;
+    padding: 12px 16px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    background: var(--bg-tertiary);
+    border-bottom: 1px solid var(--surface-border);
+}
+
+.data-table th:first-child {
+    border-radius: var(--radius-md) 0 0 0;
+}
+
+.data-table th:last-child {
+    border-radius: 0 var(--radius-md) 0 0;
+}
+
+.data-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--surface-border);
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    transition: background var(--transition-fast) ease;
+}
+
+.data-table tr:hover td {
+    background: var(--surface-hover);
+}
+
+.data-table tr:last-child td {
+    border-bottom: none;
+}
+
+.data-table tr:last-child td:first-child {
+    border-radius: 0 0 0 var(--radius-md);
+}
+
+.data-table tr:last-child td:last-child {
+    border-radius: 0 0 var(--radius-md) 0;
+}
+
+/* Sparkline in table */
+.sparkline {
+    width: 80px;
+    height: 24px;
+}
+
+/* ============================================
+   GRAPH VISUALIZATION
+   ============================================ */
+.graph-container {
+    position: relative;
+    width: 100%;
+    height: 600px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--surface-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+.graph-container.fullscreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 1000;
+    border-radius: 0;
+}
+
+.graph-controls {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 10;
+}
+
+.graph-legend {
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+    background: var(--surface-card);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--surface-border);
+    border-radius: var(--radius-md);
+    padding: 12px;
+    z-index: 10;
+}
+
+.graph-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+}
+
+.graph-legend-item:last-child {
+    margin-bottom: 0;
+}
+
+.graph-legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+/* ============================================
+   INSPECTION PANEL (FLYOUT)
+   ============================================ */
+.inspection-panel {
+    position: fixed;
+    top: 64px;
+    right: 0;
+    width: 420px;
+    height: calc(100vh - 64px);
+    background: var(--bg-secondary);
+    border-left: 1px solid var(--surface-border);
+    box-shadow: -10px 0 40px rgba(0, 0, 0, 0.3);
+    transform: translateX(100%);
+    transition: transform var(--transition-normal) ease;
+    z-index: 100;
+    overflow-y: auto;
+}
+
+.inspection-panel.open {
+    transform: translateX(0);
+}
+
+.inspection-panel-header {
+    position: sticky;
+    top: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--surface-border);
+    z-index: 1;
+}
+
+.inspection-panel-content {
+    padding: 20px;
+}
+
+.inspection-section {
+    margin-bottom: 24px;
+}
+
+.inspection-section-title {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+}
+
+.inspection-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 12px;
+}
+
+.inspection-field-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.inspection-field-value {
+    font-size: 0.875rem;
+    color: var(--text-primary);
+}
+
+.inspection-field-value.mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    word-break: break-all;
+}
+
+/* ============================================
+   HEATMAP
+   ============================================ */
+.heatmap-container {
+    position: relative;
+    width: 100%;
+    height: 400px;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: var(--bg-tertiary);
+}
+
+.heatmap-legend {
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+    background: var(--surface-card);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--surface-border);
+    border-radius: var(--radius-md);
+    padding: 12px;
+}
+
+.heatmap-gradient {
+    width: 120px;
+    height: 12px;
+    background: linear-gradient(90deg, var(--risk-safe), var(--risk-medium), var(--risk-critical));
+    border-radius: 6px;
+    margin-bottom: 8px;
+}
+
+.heatmap-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.65rem;
+    color: var(--text-muted);
+}
+
+/* ============================================
+   LOADING STATES
+   ============================================ */
+.skeleton {
+    background: linear-gradient(
+        90deg,
+        var(--bg-tertiary) 0%,
+        var(--bg-elevated) 50%,
+        var(--bg-tertiary) 100%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.5s infinite;
+    border-radius: var(--radius-sm);
+}
+
+@keyframes skeleton-shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.skeleton-text {
+    height: 14px;
+    width: 100%;
+}
+
+.skeleton-circle {
+    border-radius: 50%;
+}
+
+/* Graph skeleton */
+.skeleton-graph {
+    position: relative;
+    width: 100%;
+    height: 400px;
+}
+
+.skeleton-node {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+}
+
+.skeleton-edge {
+    position: absolute;
+    height: 2px;
+    transform-origin: left center;
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { 
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+@keyframes ripple {
+    0% {
+        transform: scale(1);
+        opacity: 0.5;
+    }
+    100% {
+        transform: scale(2);
+        opacity: 0;
+    }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
+}
+
+.animate-slide-up {
+    animation: slideUp 0.4s ease-out;
+}
+
+.animate-slide-in-right {
+    animation: slideInRight 0.3s ease-out;
+}
+
+/* ============================================
+   TOOLTIPS
+   ============================================ */
+.tooltip {
+    position: relative;
+}
+
+.tooltip::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 6px 12px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--surface-border);
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    color: var(--text-primary);
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all var(--transition-fast) ease;
+    z-index: 1000;
+}
+
+.tooltip:hover::after {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(-4px);
+}
+
+/* ============================================
+   THEME TOGGLE
+   ============================================ */
+.theme-toggle {
+    position: relative;
+    width: 48px;
+    height: 24px;
+    background: var(--bg-tertiary);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background var(--transition-fast) ease;
+}
+
+.theme-toggle::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 20px;
+    height: 20px;
+    background: var(--accent-primary);
+    border-radius: 50%;
+    transition: transform var(--transition-fast) ease;
+}
+
+.theme-toggle.light::after {
+    transform: translateX(24px);
+}
+
+/* ============================================
+   SCROLLBAR
+   ============================================ */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-tertiary);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--text-disabled);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+    .inspection-panel {
+        width: 100%;
+    }
+    
+    .graph-container {
+        height: 400px;
+    }
+    
+    h1 { font-size: 2rem; }
+    h2 { font-size: 1.5rem; }
+    h3 { font-size: 1.25rem; }
+}
+
+@media (max-width: 480px) {
+    .btn {
+        padding: 10px 20px;
+        font-size: 0.8rem;
+    }
+    
+    .card {
+        border-radius: var(--radius-md);
+    }
+}

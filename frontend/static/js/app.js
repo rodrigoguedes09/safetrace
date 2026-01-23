@@ -87,33 +87,36 @@ async function copyToClipboard(text) {
 }
 
 /**
- * Get risk level color class
+ * Get risk level color class (new forensic theme)
  */
 function getRiskColor(score) {
-    if (score <= 25) return 'text-green-400';
-    if (score <= 50) return 'text-yellow-400';
-    if (score <= 75) return 'text-orange-400';
-    return 'text-red-400';
+    if (score >= 80) return 'text-risk-critical';
+    if (score >= 60) return 'text-risk-high';
+    if (score >= 40) return 'text-risk-medium';
+    if (score >= 20) return 'text-risk-low';
+    return 'text-risk-safe';
 }
 
 /**
- * Get risk level background color
+ * Get risk level background color (new forensic theme)
  */
 function getRiskBgColor(score) {
-    if (score <= 25) return 'bg-green-500';
-    if (score <= 50) return 'bg-yellow-500';
-    if (score <= 75) return 'bg-orange-500';
-    return 'bg-red-500';
+    if (score >= 80) return 'bg-risk-critical';
+    if (score >= 60) return 'bg-risk-high';
+    if (score >= 40) return 'bg-risk-medium';
+    if (score >= 20) return 'bg-risk-low';
+    return 'bg-risk-safe';
 }
 
 /**
  * Get risk level label
  */
 function getRiskLabel(score) {
-    if (score <= 25) return 'LOW';
-    if (score <= 50) return 'MEDIUM';
-    if (score <= 75) return 'HIGH';
-    return 'CRITICAL';
+    if (score >= 80) return 'CRITICAL';
+    if (score >= 60) return 'HIGH';
+    if (score >= 40) return 'MEDIUM';
+    if (score >= 20) return 'LOW';
+    return 'SAFE';
 }
 
 /**

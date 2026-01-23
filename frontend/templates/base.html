@@ -1,105 +1,239 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en" class="scroll-smooth dark-theme">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}SafeTrace - Blockchain Compliance{% endblock %}</title>
-    <meta name="description" content="Production-ready blockchain compliance tool for Know Your Transaction (KYT) analysis. Trace transaction risk across 41+ blockchains.">
+    <meta name="description" content="Enterprise-grade blockchain compliance tool for Know Your Transaction (KYT) analysis. Trace transaction risk across 41+ blockchains.">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
+                    fontFamily: {
+                        'sans': ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+                        'mono': ['JetBrains Mono', 'Fira Code', 'monospace'],
+                    },
                     colors: {
-                        primary: {
-                            50: '#f0f9ff',
-                            100: '#e0f2fe',
-                            200: '#bae6fd',
-                            300: '#7dd3fc',
-                            400: '#38bdf8',
-                            500: '#0ea5e9',
-                            600: '#0284c7',
-                            700: '#0369a1',
-                            800: '#075985',
-                            900: '#0c4a6e',
+                        'forensic': {
+                            900: '#0B0E11',
+                            800: '#12171D',
+                            700: '#1A2028',
+                            600: '#232B35',
+                            500: '#2D3748',
                         },
-                        dark: {
-                            800: '#1e293b',
-                            900: '#0f172a',
-                            950: '#020617',
+                        'risk': {
+                            'critical': '#FF3B3B',
+                            'high': '#FF6B35',
+                            'medium': '#FFB800',
+                            'low': '#00C48C',
+                            'safe': '#00D68F',
+                        },
+                        'accent': {
+                            DEFAULT: '#3B82F6',
+                            'light': '#60A5FA',
+                            'dark': '#2563EB',
+                        },
+                        'entity': {
+                            'exchange': '#3B82F6',
+                            'mixer': '#EF4444',
+                            'sanctioned': '#DC2626',
+                            'scammer': '#F97316',
+                            'defi': '#8B5CF6',
+                            'contract': '#10B981',
                         }
                     },
                     animation: {
-                        'fade-in': 'fadeIn 0.5s ease-in-out',
-                        'slide-up': 'slideUp 0.5s ease-out',
+                        'fade-in': 'fadeIn 0.3s ease-out',
+                        'slide-up': 'slideUp 0.4s ease-out',
+                        'slide-in-right': 'slideInRight 0.3s ease-out',
                         'pulse-slow': 'pulse 3s infinite',
+                        'shimmer': 'shimmer 1.5s infinite',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        slideInRight: {
+                            '0%': { opacity: '0', transform: 'translateX(20px)' },
+                            '100%': { opacity: '1', transform: 'translateX(0)' },
+                        },
+                        shimmer: {
+                            '0%': { backgroundPosition: '200% 0' },
+                            '100%': { backgroundPosition: '-200% 0' },
+                        }
                     }
                 }
             }
         }
     </script>
     
-    <!-- Custom Styles -->
+    <!-- Custom Theme CSS -->
+    <link rel="stylesheet" href="/static/css/theme.css">
+    
+    <!-- Additional Styles -->
     <style>
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        .forensics-bg {
+            background: 
+                radial-gradient(ellipse at 20% 0%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 100%, rgba(139, 92, 246, 0.06) 0%, transparent 50%),
+                linear-gradient(180deg, #0B0E11 0%, #12171D 100%);
         }
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        
+        .light-theme .forensics-bg {
+            background: 
+                radial-gradient(ellipse at 20% 0%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 100%, rgba(139, 92, 246, 0.03) 0%, transparent 50%),
+                linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
         }
-        .gradient-bg {
-            background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%);
-        }
+        
         .glass-card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(26, 32, 40, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
-        .glow {
-            box-shadow: 0 0 40px rgba(14, 165, 233, 0.3);
+        
+        .light-theme .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 0, 0, 0.1);
         }
-        .risk-low { color: #22c55e; }
-        .risk-medium { color: #eab308; }
-        .risk-high { color: #ef4444; }
+        
+        .risk-gradient-bar {
+            background: linear-gradient(90deg, #00D68F 0%, #00C48C 25%, #FFB800 50%, #FF6B35 75%, #FF3B3B 100%);
+        }
+        
         .btn-primary {
-            @apply bg-primary-500 hover:bg-primary-600 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl;
+            @apply bg-accent hover:bg-accent-light text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200;
+            box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.4);
         }
+        
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px 0 rgba(59, 130, 246, 0.5);
+        }
+        
         .btn-secondary {
-            @apply bg-transparent border-2 border-primary-500 text-primary-500 hover:bg-primary-500 hover:text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200;
+            @apply bg-transparent border-2 border-accent text-accent hover:bg-accent hover:text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200;
         }
+        
+        .btn-ghost {
+            @apply bg-transparent text-gray-400 hover:text-white hover:bg-forensic-700 font-medium py-2 px-4 rounded-lg transition-all duration-200;
+        }
+        
+        .input-forensic {
+            @apply w-full bg-forensic-700 border border-forensic-600 rounded-lg px-4 py-3 text-white placeholder-gray-500 transition-all duration-200;
+        }
+        
+        .input-forensic:focus {
+            @apply outline-none border-accent;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+        
+        .mono { @apply font-mono text-sm; }
+        .hash-display { @apply font-mono text-sm text-accent-light bg-accent/10 px-2 py-1 rounded; }
+        
+        .risk-badge-critical {
+            @apply inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide;
+            background: rgba(255, 59, 59, 0.15);
+            color: #FF3B3B;
+            border: 1px solid #FF3B3B;
+        }
+        
+        .risk-badge-high {
+            @apply inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide;
+            background: rgba(255, 107, 53, 0.15);
+            color: #FF6B35;
+            border: 1px solid #FF6B35;
+        }
+        
+        .risk-badge-medium {
+            @apply inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide;
+            background: rgba(255, 184, 0, 0.15);
+            color: #FFB800;
+            border: 1px solid #FFB800;
+        }
+        
+        .risk-badge-low {
+            @apply inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide;
+            background: rgba(0, 196, 140, 0.15);
+            color: #00C48C;
+            border: 1px solid #00C48C;
+        }
+        
+        .entity-badge { @apply inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold uppercase tracking-wide; }
+        .entity-exchange { background: rgba(59, 130, 246, 0.15); color: #3B82F6; }
+        .entity-mixer { background: rgba(239, 68, 68, 0.15); color: #EF4444; }
+        .entity-sanctioned { background: rgba(220, 38, 38, 0.2); color: #DC2626; animation: pulse 2s infinite; }
+        .entity-defi { background: rgba(139, 92, 246, 0.15); color: #8B5CF6; }
+        .entity-contract { background: rgba(16, 185, 129, 0.15); color: #10B981; }
+        
+        .skeleton {
+            background: linear-gradient(90deg, #1A2028 0%, #232B35 50%, #1A2028 100%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+        
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #1A2028; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #64748B; }
     </style>
     
     {% block extra_head %}{% endblock %}
 </head>
-<body class="gradient-bg text-white min-h-screen">
+<body class="forensics-bg text-white min-h-screen font-sans">
     <!-- Navigation -->
-    <nav class="fixed top-0 w-full z-50 glass-card">
+    <nav class="fixed top-0 w-full z-50 glass-card border-b border-white/5">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
-                <a href="/" class="flex items-center space-x-2">
-                    <svg class="w-8 h-8 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                    </svg>
-                    <span class="text-xl font-bold">SafeTrace</span>
+                <!-- Logo -->
+                <a href="/" class="flex items-center space-x-3 group">
+                    <div class="w-9 h-9 bg-accent/20 rounded-lg flex items-center justify-center group-hover:bg-accent/30 transition-colors">
+                        <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                    </div>
+                    <span class="text-xl font-bold tracking-tight">SafeTrace</span>
                 </a>
                 
-                <div class="hidden md:flex items-center space-x-8">
-                    <a href="/" class="hover:text-primary-400 transition">Home</a>
-                    <a href="/analyze" class="hover:text-primary-400 transition">Analyze</a>
-                    <a href="/pricing" class="hover:text-primary-400 transition">Pricing</a>
-                    <a href="/documentation" class="hover:text-primary-400 transition">Docs</a>
+                <!-- Desktop Navigation -->
+                <div class="hidden md:flex items-center space-x-1">
+                    <a href="/" class="btn-ghost">Home</a>
+                    <a href="/analyze" class="btn-ghost">Analyze</a>
+                    <a href="/pricing" class="btn-ghost">Pricing</a>
+                    <a href="/documentation" class="btn-ghost">Docs</a>
                 </div>
                 
+                <!-- Right Section -->
                 <div class="flex items-center space-x-4">
-                    <button onclick="openAuthModal('login')" class="hidden md:block hover:text-primary-400 transition" id="nav-login-btn">Login</button>
-                    <a href="/analyze" class="btn-primary text-sm hidden md:block" id="nav-cta-btn">Start Analysis</a>
+                    <!-- Theme Toggle -->
+                    <button onclick="toggleTheme()" class="p-2 rounded-lg hover:bg-forensic-700 transition-colors" id="theme-toggle" title="Toggle theme">
+                        <svg id="theme-icon-dark" class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                        </svg>
+                    </button>
+                    
+                    <!-- Login Button -->
+                    <button onclick="openAuthModal('login')" class="hidden md:block text-gray-400 hover:text-white transition-colors font-medium" id="nav-login-btn">Login</button>
+                    
+                    <!-- CTA Button -->
+                    <a href="/analyze" class="btn-primary text-sm hidden md:flex" id="nav-cta-btn">Start Analysis</a>
                     
                     <!-- Mobile Menu Button -->
-                    <button onclick="toggleMobileMenu()" class="md:hidden text-white">
+                    <button onclick="toggleMobileMenu()" class="md:hidden p-2 rounded-lg hover:bg-forensic-700 transition-colors">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                         </svg>
@@ -107,31 +241,33 @@
                     
                     <!-- User Dropdown -->
                     <div class="hidden relative" id="nav-user-menu">
-                        <button onclick="toggleUserDropdown()" class="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-800/50 transition">
-                            <svg class="w-8 h-8 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                            <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <button onclick="toggleUserDropdown()" class="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-forensic-700 transition-colors">
+                            <div class="w-8 h-8 bg-accent/20 rounded-full flex items-center justify-center">
+                                <svg class="w-4 h-4 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                </svg>
+                            </div>
+                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                             </svg>
                         </button>
                         
-                        <div id="user-dropdown" class="hidden absolute right-0 mt-3 w-56 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl py-2 z-50">
-                            <a href="/dashboard" class="flex items-center space-x-3 px-4 py-3 hover:bg-gray-800 transition text-gray-200 hover:text-white">
-                                <svg class="w-5 h-5 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                        <div id="user-dropdown" class="hidden absolute right-0 mt-3 w-56 bg-forensic-800 border border-forensic-600 rounded-xl shadow-2xl py-2 z-50 animate-fade-in">
+                            <a href="/dashboard" class="flex items-center space-x-3 px-4 py-3 hover:bg-forensic-700 transition text-gray-300 hover:text-white">
+                                <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/>
                                 </svg>
                                 <span class="font-medium">Dashboard</span>
                             </a>
-                            <a href="/settings" class="flex items-center space-x-3 px-4 py-3 hover:bg-gray-800 transition text-gray-200 hover:text-white">
-                                <svg class="w-5 h-5 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <a href="/settings" class="flex items-center space-x-3 px-4 py-3 hover:bg-forensic-700 transition text-gray-300 hover:text-white">
+                                <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                 </svg>
                                 <span class="font-medium">Settings</span>
                             </a>
-                            <div class="border-t border-gray-700 my-1"></div>
-                            <button onclick="logout()" class="w-full flex items-center space-x-3 px-4 py-3 hover:bg-red-500/10 transition text-red-400 hover:text-red-300">
+                            <div class="border-t border-forensic-600 my-2"></div>
+                            <button onclick="logout()" class="w-full flex items-center space-x-3 px-4 py-3 hover:bg-risk-critical/10 transition text-risk-critical">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
                                 </svg>
@@ -144,19 +280,19 @@
         </div>
         
         <!-- Mobile Menu -->
-        <div id="mobile-menu" class="hidden md:hidden bg-gray-900/95 backdrop-blur-sm border-t border-gray-700">
-            <div class="px-4 py-4 space-y-3">
-                <a href="/" class="block px-4 py-2 rounded-lg hover:bg-gray-800 transition">Home</a>
-                <a href="/analyze" class="block px-4 py-2 rounded-lg hover:bg-gray-800 transition">Analyze</a>
-                <a href="/pricing" class="block px-4 py-2 rounded-lg hover:bg-gray-800 transition">Pricing</a>
-                <a href="/documentation" class="block px-4 py-2 rounded-lg hover:bg-gray-800 transition">Docs</a>
-                <div id="mobile-auth-section" class="pt-2 border-t border-gray-700">
-                    <button onclick="openAuthModal('login')" class="block w-full text-left px-4 py-2 rounded-lg hover:bg-gray-800 transition">Login</button>
+        <div id="mobile-menu" class="hidden md:hidden bg-forensic-800 border-t border-forensic-600">
+            <div class="px-4 py-4 space-y-2">
+                <a href="/" class="block px-4 py-3 rounded-lg hover:bg-forensic-700 transition font-medium">Home</a>
+                <a href="/analyze" class="block px-4 py-3 rounded-lg hover:bg-forensic-700 transition font-medium">Analyze</a>
+                <a href="/pricing" class="block px-4 py-3 rounded-lg hover:bg-forensic-700 transition font-medium">Pricing</a>
+                <a href="/documentation" class="block px-4 py-3 rounded-lg hover:bg-forensic-700 transition font-medium">Docs</a>
+                <div id="mobile-auth-section" class="pt-2 border-t border-forensic-600">
+                    <button onclick="openAuthModal('login')" class="block w-full text-left px-4 py-3 rounded-lg hover:bg-forensic-700 transition font-medium">Login</button>
                 </div>
-                <div id="mobile-user-section" class="hidden pt-2 border-t border-gray-700">
-                    <a href="/dashboard" class="block px-4 py-2 rounded-lg hover:bg-gray-800 transition">Dashboard</a>
-                    <a href="/settings" class="block px-4 py-2 rounded-lg hover:bg-gray-800 transition">Settings</a>
-                    <button onclick="logout()" class="block w-full text-left px-4 py-2 rounded-lg hover:bg-red-500/10 text-red-400 transition">Logout</button>
+                <div id="mobile-user-section" class="hidden pt-2 border-t border-forensic-600">
+                    <a href="/dashboard" class="block px-4 py-3 rounded-lg hover:bg-forensic-700 transition font-medium">Dashboard</a>
+                    <a href="/settings" class="block px-4 py-3 rounded-lg hover:bg-forensic-700 transition font-medium">Settings</a>
+                    <button onclick="logout()" class="block w-full text-left px-4 py-3 rounded-lg hover:bg-risk-critical/10 text-risk-critical transition font-medium">Logout</button>
                 </div>
             </div>
         </div>
@@ -168,104 +304,133 @@
     </main>
 
     <!-- Footer -->
-    <footer class="border-t border-gray-800 mt-20">
+    <footer class="border-t border-forensic-700 mt-20 bg-forensic-900/50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <div class="grid grid-cols-2 md:grid-cols-3 gap-8">
-                <div>
-                    <h3 class="font-semibold mb-4">Product</h3>
-                    <ul class="space-y-2 text-gray-400">
-                        <li><a href="/#features" class="hover:text-white transition">Features</a></li>
-                        <li><a href="/pricing" class="hover:text-white transition">Pricing</a></li>
-                        <li><a href="/analyze" class="hover:text-white transition">KYT Analysis</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h3 class="font-semibold mb-4">Resources</h3>
-                    <ul class="space-y-2 text-gray-400">
-                        <li><a href="/documentation" class="hover:text-white transition">Documentation</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h3 class="font-semibold mb-4">Developer</h3>
-                    <div class="flex items-center space-x-2 text-gray-400">
-                        <span>Developed by</span>
-                        <a href="https://github.com/rodrigoguedes09" target="_blank" rel="noopener noreferrer" class="flex items-center space-x-1 hover:text-primary-400 transition">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+                <div class="col-span-2 md:col-span-1">
+                    <div class="flex items-center space-x-2 mb-4">
+                        <div class="w-8 h-8 bg-accent/20 rounded-lg flex items-center justify-center">
+                            <svg class="w-4 h-4 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                             </svg>
-                            <span class="font-medium">rodrigoguedes09</span>
-                        </a>
+                        </div>
+                        <span class="font-bold">SafeTrace</span>
                     </div>
+                    <p class="text-sm text-gray-500">Enterprise-grade blockchain compliance for KYT analysis.</p>
+                </div>
+                
+                <div>
+                    <h3 class="font-semibold mb-4 text-sm uppercase tracking-wider text-gray-400">Product</h3>
+                    <ul class="space-y-3">
+                        <li><a href="/#features" class="text-gray-500 hover:text-white transition text-sm">Features</a></li>
+                        <li><a href="/pricing" class="text-gray-500 hover:text-white transition text-sm">Pricing</a></li>
+                        <li><a href="/analyze" class="text-gray-500 hover:text-white transition text-sm">KYT Analysis</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="font-semibold mb-4 text-sm uppercase tracking-wider text-gray-400">Resources</h3>
+                    <ul class="space-y-3">
+                        <li><a href="/documentation" class="text-gray-500 hover:text-white transition text-sm">Documentation</a></li>
+                        <li><a href="/documentation#api" class="text-gray-500 hover:text-white transition text-sm">API Reference</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="font-semibold mb-4 text-sm uppercase tracking-wider text-gray-400">Developer</h3>
+                    <a href="https://github.com/rodrigoguedes09" target="_blank" rel="noopener noreferrer" class="flex items-center space-x-2 text-gray-500 hover:text-accent transition">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+                        </svg>
+                        <span class="text-sm font-medium">rodrigoguedes09</span>
+                    </a>
                 </div>
             </div>
-            <div class="border-t border-gray-800 mt-8 pt-8 text-center">
-                <p class="text-gray-400">&copy; 2026 SafeTrace. All rights reserved.</p>
+            
+            <div class="border-t border-forensic-700 mt-10 pt-8 flex flex-col md:flex-row justify-between items-center">
+                <p class="text-gray-500 text-sm">&copy; 2026 SafeTrace. All rights reserved.</p>
+                <div class="flex items-center space-x-4 mt-4 md:mt-0">
+                    <span class="text-xs text-gray-600">41+ Blockchains Supported</span>
+                    <span class="text-xs text-gray-600">•</span>
+                    <span class="text-xs text-gray-600">Enterprise-Grade Security</span>
+                </div>
             </div>
         </div>
     </footer>
 
     <!-- Auth Modal -->
     <div id="auth-modal" class="fixed inset-0 z-50 hidden">
-        <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeAuthModal()"></div>
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeAuthModal()"></div>
         <div class="flex items-center justify-center min-h-screen p-4">
             <div class="relative glass-card rounded-2xl p-8 w-full max-w-md animate-slide-up">
-                <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white transition p-2 hover:bg-forensic-700 rounded-lg">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
                 </button>
                 
                 <!-- Login Form -->
                 <div id="login-form">
-                    <h2 class="text-2xl font-bold mb-6">Welcome Back</h2>
+                    <div class="text-center mb-8">
+                        <div class="w-12 h-12 bg-accent/20 rounded-xl flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                            </svg>
+                        </div>
+                        <h2 class="text-2xl font-bold">Welcome Back</h2>
+                        <p class="text-gray-400 text-sm mt-1">Sign in to your SafeTrace account</p>
+                    </div>
                     <form onsubmit="handleLogin(event)">
                         <div class="mb-4">
-                            <label class="block text-sm font-medium mb-2">Email</label>
-                            <input type="email" id="login-email" required 
-                                class="w-full bg-dark-800 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:border-primary-500 transition">
+                            <label class="block text-sm font-medium mb-2 text-gray-300">Email</label>
+                            <input type="email" id="login-email" required class="input-forensic">
                         </div>
                         <div class="mb-6">
-                            <label class="block text-sm font-medium mb-2">Password</label>
-                            <input type="password" id="login-password" required 
-                                class="w-full bg-dark-800 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:border-primary-500 transition">
+                            <label class="block text-sm font-medium mb-2 text-gray-300">Password</label>
+                            <input type="password" id="login-password" required class="input-forensic">
                         </div>
-                        <button type="submit" class="w-full btn-primary mb-4">Login</button>
-                        <p class="text-center text-gray-400">
+                        <button type="submit" class="w-full btn-primary mb-4">Sign In</button>
+                        <p class="text-center text-gray-400 text-sm">
                             Don't have an account? 
-                            <button type="button" onclick="switchToRegister()" class="text-primary-400 hover:underline">Sign up</button>
+                            <button type="button" onclick="switchToRegister()" class="text-accent hover:underline">Create one</button>
                         </p>
                     </form>
-                    <div id="login-error" class="mt-4 text-red-400 text-sm hidden"></div>
+                    <div id="login-error" class="mt-4 p-3 bg-risk-critical/10 border border-risk-critical/30 rounded-lg text-risk-critical text-sm hidden"></div>
                 </div>
                 
                 <!-- Register Form -->
                 <div id="register-form" class="hidden">
-                    <h2 class="text-2xl font-bold mb-6">Create Account</h2>
+                    <div class="text-center mb-8">
+                        <div class="w-12 h-12 bg-accent/20 rounded-xl flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                            </svg>
+                        </div>
+                        <h2 class="text-2xl font-bold">Create Account</h2>
+                        <p class="text-gray-400 text-sm mt-1">Start analyzing blockchain transactions</p>
+                    </div>
                     <form onsubmit="handleRegister(event)">
                         <div class="mb-4">
-                            <label class="block text-sm font-medium mb-2">Full Name</label>
-                            <input type="text" id="register-name" required minlength="2" maxlength="100"
-                                class="w-full bg-dark-800 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:border-primary-500 transition">
+                            <label class="block text-sm font-medium mb-2 text-gray-300">Full Name</label>
+                            <input type="text" id="register-name" required minlength="2" maxlength="100" class="input-forensic">
                         </div>
                         <div class="mb-4">
-                            <label class="block text-sm font-medium mb-2">Email</label>
-                            <input type="email" id="register-email" required 
-                                class="w-full bg-dark-800 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:border-primary-500 transition">
+                            <label class="block text-sm font-medium mb-2 text-gray-300">Email</label>
+                            <input type="email" id="register-email" required class="input-forensic">
                         </div>
                         <div class="mb-6">
-                            <label class="block text-sm font-medium mb-2">Password</label>
-                            <input type="password" id="register-password" required minlength="8"
-                                class="w-full bg-dark-800 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:border-primary-500 transition">
-                            <p class="text-xs text-gray-400 mt-1">Min 8 chars with uppercase, lowercase, and number</p>
+                            <label class="block text-sm font-medium mb-2 text-gray-300">Password</label>
+                            <input type="password" id="register-password" required minlength="8" class="input-forensic">
+                            <p class="text-xs text-gray-500 mt-2">Min 8 characters with uppercase, lowercase, and number</p>
                         </div>
                         <button type="submit" class="w-full btn-primary mb-4">Create Account</button>
-                        <p class="text-center text-gray-400">
+                        <p class="text-center text-gray-400 text-sm">
                             Already have an account? 
-                            <button type="button" onclick="switchToLogin()" class="text-primary-400 hover:underline">Login</button>
+                            <button type="button" onclick="switchToLogin()" class="text-accent hover:underline">Sign in</button>
                         </p>
                     </form>
-                    <div id="register-error" class="mt-4 text-red-400 text-sm hidden"></div>
-                    <div id="register-success" class="mt-4 text-green-400 text-sm hidden"></div>
+                    <div id="register-error" class="mt-4 p-3 bg-risk-critical/10 border border-risk-critical/30 rounded-lg text-risk-critical text-sm hidden"></div>
+                    <div id="register-success" class="mt-4 p-3 bg-risk-safe/10 border border-risk-safe/30 rounded-lg text-risk-safe text-sm hidden"></div>
                 </div>
             </div>
         </div>
@@ -277,6 +442,28 @@
     <!-- Core JavaScript -->
     <script src="/static/js/auth.js"></script>
     <script src="/static/js/app.js"></script>
+    
+    <script>
+        function toggleTheme() {
+            const html = document.documentElement;
+            const isLight = html.classList.contains('light-theme');
+            if (isLight) {
+                html.classList.remove('light-theme');
+                html.classList.add('dark-theme');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                html.classList.remove('dark-theme');
+                html.classList.add('light-theme');
+                localStorage.setItem('theme', 'light');
+            }
+        }
+        
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.classList.add(savedTheme + '-theme');
+        })();
+    </script>
+    
     {% block extra_scripts %}{% endblock %}
 </body>
 </html>
