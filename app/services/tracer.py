@@ -140,6 +140,11 @@ class TransactionTracerService:
             logger.debug(f"[Tracer] Fetching initial transaction {tx_hash[:16]}...")
             initial_tx = await self._fetch_transaction_cached(chain, tx_hash, state)
             logger.info(f"[Tracer] ✓ Initial transaction fetched - Type: {initial_tx.chain_type.value}")
+            
+            # Mark initial transaction as visited
+            initial_tx_key = f"{chain}:{tx_hash.lower()}"
+            state.visited_transactions.add(initial_tx_key)
+            
         except TransactionNotFoundError:
             logger.error(f"[Tracer] ✗ Transaction not found: {tx_hash[:16]}...")
             raise
@@ -324,17 +329,23 @@ class TransactionTracerService:
 
             # Stop if max depth reached
             if node.depth >= max_depth:
+                logger.debug(f"[Tracer Node] Max depth {max_depth} reached for {node.address[:16]}...")
                 return new_nodes
 
             # Trace upstream transactions
             if chain_config.chain_type == ChainType.UTXO:
+                logger.debug(f"[Tracer Node] Tracing UTXO inputs for {node.address[:16]}...")
                 new_nodes.extend(
                     await self._trace_utxo_inputs(chain, node, state)
                 )
             else:
+                logger.debug(f"[Tracer Node] Tracing Account inputs for {node.address[:16]}...")
                 new_nodes.extend(
                     await self._trace_account_inputs(chain, chain_config, node, state)
                 )
+            
+            if new_nodes:
+                logger.debug(f"[Tracer Node] Found {len(new_nodes)} new nodes to explore from {node.address[:16]}...")
 
         return new_nodes
 
@@ -398,6 +409,11 @@ class TransactionTracerService:
         try:
             tx = await self._fetch_transaction_cached(chain, node.tx_hash, state)
             
+            # Mark transaction as visited
+            tx_key = f"{chain}:{node.tx_hash.lower()}"
+            if tx_key not in state.visited_transactions:
+                state.visited_transactions.add(tx_key)
+            
             # Store timestamp for velocity analysis
             if tx.timestamp:
                 state.transaction_timestamps[node.tx_hash.lower()] = tx.timestamp
@@ -406,6 +422,7 @@ class TransactionTracerService:
             if tx.sender:
                 sender_key = f"{chain}:{tx.sender.lower()}"
                 if sender_key not in state.visited_addresses:
+                    logger.debug(f"[Tracer Inputs] Adding sender {tx.sender[:16]}... at depth {node.depth + 1}")
                     # Track connection
                     node_addr = node.address.lower()
                     if node_addr not in state.address_connections:
@@ -429,6 +446,8 @@ class TransactionTracerService:
                             priority_score=priority,
                         )
                     )
+                else:
+                    logger.debug(f"[Tracer Inputs] Sender {tx.sender[:16]}... already visited")
 
             # Trace internal transactions if contract
             if tx.is_contract_call and chain_config.has_internal_txs:
@@ -574,13 +593,12 @@ class TransactionTracerService:
         # Fetch from provider
         logger.debug(f"[Tracer Cache] Address metadata cache miss - fetching from provider: {address[:16]}...")
         state.api_calls += 1
-
-        # Fetch from provider
-        state.api_calls += 1
+        
         try:
             metadata = await self._provider.get_address_metadata(chain, address)
+            logger.debug(f"[Tracer Cache] ✓ Metadata fetched for {address[:16]}... - Tags: {len(metadata.tags)}, Balance: {metadata.balance}")
         except Exception as e:
-            logger.warning(f"Failed to fetch metadata for {address}: {e}")
+            logger.warning(f"[Tracer Cache] ✗ Failed to fetch metadata for {address[:16]}...: {e}")
             metadata = AddressMetadata(address=address, chain=chain)
 
         # Cache results
