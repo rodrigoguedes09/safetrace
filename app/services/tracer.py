@@ -262,7 +262,7 @@ class TransactionTracerService:
             if not current_batch:
                 continue
             
-            logger.debug(f"[Tracer BFS] Processing batch at depth {current_depth} - {len(current_batch)} nodes")
+            logger.info(f"[Tracer BFS] Processing batch at depth {current_depth} - {len(current_batch)} nodes")
 
             # Process batch concurrently
             tasks = [
@@ -297,7 +297,7 @@ class TransactionTracerService:
         """Process a single trace node."""
         new_nodes: list[TraceNode] = []
         
-        logger.debug(f"[Tracer Node] Processing {node.address[:16]}... at depth {node.depth}")
+        logger.info(f"[Tracer Node] Processing {node.address[:16]}... at depth {node.depth}")
 
         async with self._semaphore:
             # Fetch address metadata
@@ -334,18 +334,20 @@ class TransactionTracerService:
 
             # Trace upstream transactions
             if chain_config.chain_type == ChainType.UTXO:
-                logger.debug(f"[Tracer Node] Tracing UTXO inputs for {node.address[:16]}...")
+                logger.info(f"[Tracer Node] Tracing UTXO inputs for {node.address[:16]}...")
                 new_nodes.extend(
                     await self._trace_utxo_inputs(chain, node, state)
                 )
             else:
-                logger.debug(f"[Tracer Node] Tracing Account inputs for {node.address[:16]}...")
+                logger.info(f"[Tracer Node] Tracing Account inputs for {node.address[:16]}...")
                 new_nodes.extend(
                     await self._trace_account_inputs(chain, chain_config, node, state)
                 )
             
             if new_nodes:
-                logger.debug(f"[Tracer Node] Found {len(new_nodes)} new nodes to explore from {node.address[:16]}...")
+                logger.info(f"[Tracer Node] Found {len(new_nodes)} new nodes to explore from {node.address[:16]}...")
+            else:
+                logger.info(f"[Tracer Node] No new nodes found from {node.address[:16]}...")
 
         return new_nodes
 
@@ -422,7 +424,7 @@ class TransactionTracerService:
             if tx.sender:
                 sender_key = f"{chain}:{tx.sender.lower()}"
                 if sender_key not in state.visited_addresses:
-                    logger.debug(f"[Tracer Inputs] Adding sender {tx.sender[:16]}... at depth {node.depth + 1}")
+                    logger.info(f"[Tracer Inputs] Adding sender {tx.sender[:16]}... at depth {node.depth + 1}")
                     # Track connection
                     node_addr = node.address.lower()
                     if node_addr not in state.address_connections:
@@ -447,7 +449,7 @@ class TransactionTracerService:
                         )
                     )
                 else:
-                    logger.debug(f"[Tracer Inputs] Sender {tx.sender[:16]}... already visited")
+                    logger.info(f"[Tracer Inputs] Sender {tx.sender[:16]}... already visited")
 
             # Trace internal transactions if contract
             if tx.is_contract_call and chain_config.has_internal_txs:
