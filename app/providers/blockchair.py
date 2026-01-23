@@ -78,6 +78,8 @@ class CircuitBreaker:
     
     def _on_success(self):
         """Reset circuit breaker on successful call."""
+        if self.state != "CLOSED":
+            logger.info(f"[Circuit Breaker] State change: {self.state} -> CLOSED (recovered)")
         self.failure_count = 0
         self.state = "CLOSED"
     
@@ -87,8 +89,9 @@ class CircuitBreaker:
         self.last_failure_time = asyncio.get_event_loop().time()
         
         if self.failure_count >= self.failure_threshold:
+            if self.state != "OPEN":
+                logger.error(f"[Circuit Breaker] State change: {self.state} -> OPEN after {self.failure_count} failures")
             self.state = "OPEN"
-            logger.error(f"Circuit breaker OPEN after {self.failure_count} failures")
 
 
 class BlockchairProvider(BlockchainProvider):
@@ -169,7 +172,9 @@ class BlockchairProvider(BlockchainProvider):
             min_interval = 1.0 / self._requests_per_second
             elapsed = now - self._last_request_time
             if elapsed < min_interval:
-                await asyncio.sleep(min_interval - elapsed)
+                wait_time = min_interval - elapsed
+                logger.debug(f"Rate limiting: waiting {wait_time:.3f}s before next request")
+                await asyncio.sleep(wait_time)
             self._last_request_time = asyncio.get_event_loop().time()
 
     async def _request(
@@ -200,43 +205,62 @@ class BlockchairProvider(BlockchainProvider):
         if self._api_key:
             query_params["key"] = self._api_key
 
+        logger.info(f"[Blockchair API] {method} {url}")
+        logger.debug(f"[Blockchair API] Query params: {query_params}")
+
         client = await self._get_client()
         last_error: Exception | None = None
 
         for attempt in range(self._max_retries):
             try:
                 self._request_count += 1
+                logger.debug(f"[Blockchair API] Attempt {attempt + 1}/{self._max_retries} - Request #{self._request_count}")
                 response = await client.request(method, url, params=query_params)
 
                 if response.status_code == 429:
                     retry_after = float(response.headers.get("Retry-After", self._retry_delay))
+                    logger.warning(f"[Blockchair API] Rate limit hit (429) - Retry after: {retry_after}s")
                     if attempt < self._max_retries - 1:
-                        await asyncio.sleep(retry_after * (2**attempt))
+                        wait_time = retry_after * (2**attempt)
+                        logger.info(f"[Blockchair API] Waiting {wait_time:.2f}s before retry {attempt + 2}/{self._max_retries}")
+                        await asyncio.sleep(wait_time)
                         continue
+                    logger.error(f"[Blockchair API] Rate limit exceeded after {self._max_retries} attempts")
                     raise APIRateLimitError("blockchair", retry_after)
 
                 if response.status_code == 404:
+                    logger.warning(f"[Blockchair API] Resource not found (404): {url}")
                     return {"data": None, "context": {}}
 
                 response.raise_for_status()
+                logger.info(f"[Blockchair API] ✓ Success - Status {response.status_code}")
                 # Success - reset circuit breaker
                 self._circuit_breaker._on_success()
-                return response.json()
+                result = response.json()
+                logger.debug(f"[Blockchair API] Response data keys: {list(result.keys())}")
+                return result
 
             except httpx.TimeoutException as e:
                 last_error = e
+                logger.warning(f"[Blockchair API] Request timeout after {self._timeout}s")
                 self._circuit_breaker._on_failure()
                 if attempt < self._max_retries - 1:
-                    await asyncio.sleep(self._retry_delay * (2**attempt))
+                    wait_time = self._retry_delay * (2**attempt)
+                    logger.info(f"[Blockchair API] Retrying after timeout - waiting {wait_time:.2f}s")
+                    await asyncio.sleep(wait_time)
                     continue
+                logger.error(f"[Blockchair API] Timeout error after {self._max_retries} attempts")
                 raise APITimeoutError("blockchair", self._timeout) from e
 
             except httpx.HTTPStatusError as e:
                 last_error = e
+                logger.error(f"[Blockchair API] HTTP error {e.response.status_code}: {e.response.text[:200]}")
                 if e.response.status_code >= 500:
                     self._circuit_breaker._on_failure()
                     if attempt < self._max_retries - 1:
-                        await asyncio.sleep(self._retry_delay * (2**attempt))
+                        wait_time = self._retry_delay * (2**attempt)
+                        logger.info(f"[Blockchair API] Server error - retrying in {wait_time:.2f}s")
+                        await asyncio.sleep(wait_time)
                         continue
                 raise
 
@@ -253,21 +277,27 @@ class BlockchairProvider(BlockchainProvider):
 
     async def get_transaction(self, chain: str, tx_hash: str) -> Transaction:
         """Fetch transaction details from Blockchair."""
+        logger.info(f"[Blockchair] Fetching transaction {tx_hash[:16]}... on {chain}")
         config = self._get_chain_config(chain)
         
         path = f"{config.slug}/dashboards/transaction/{tx_hash}"
+        logger.debug(f"[Blockchair] API path: {path}")
         data = await self._request("GET", path)
 
         tx_data = data.get("data", {})
         if not tx_data or tx_hash.lower() not in [k.lower() for k in tx_data.keys()]:
+            logger.error(f"[Blockchair] Transaction {tx_hash[:16]}... not found on {chain}")
             raise TransactionNotFoundError(tx_hash, chain)
 
         raw_tx = tx_data.get(tx_hash) or tx_data.get(tx_hash.lower()) or {}
         tx_info = raw_tx.get("transaction", {})
 
+        logger.debug(f"[Blockchair] Transaction data received - type: {config.chain_type.value}")
         if config.chain_type == ChainType.UTXO:
+            logger.debug(f"[Blockchair] Parsing UTXO transaction for {chain}")
             return self._parse_utxo_transaction(tx_hash, chain, config, raw_tx, tx_info)
         else:
+            logger.debug(f"[Blockchair] Parsing Account-based transaction for {chain}")
             return self._parse_account_transaction(tx_hash, chain, config, raw_tx, tx_info)
 
     def _parse_utxo_transaction(
@@ -279,8 +309,11 @@ class BlockchairProvider(BlockchainProvider):
         tx_info: dict[str, Any],
     ) -> Transaction:
         """Parse UTXO-based transaction."""
+        logger.debug(f"[Blockchair] Parsing UTXO transaction - hash: {tx_hash[:16]}...")
+        inputs_data = raw_tx.get("inputs", [])
+        logger.debug(f"[Blockchair] Found {len(inputs_data)} inputs")
         inputs = []
-        for inp in raw_tx.get("inputs", []):
+        for inp in inputs_data:
             inputs.append(
                 TransactionInput(
                     address=inp.get("recipient", ""),
@@ -290,8 +323,10 @@ class BlockchairProvider(BlockchainProvider):
                 )
             )
 
+        outputs_data = raw_tx.get("outputs", [])
+        logger.debug(f"[Blockchair] Found {len(outputs_data)} outputs")
         outputs = []
-        for idx, out in enumerate(raw_tx.get("outputs", [])):
+        for idx, out in enumerate(outputs_data):
             outputs.append(
                 TransactionOutput(
                     address=out.get("recipient", ""),
@@ -306,6 +341,9 @@ class BlockchairProvider(BlockchainProvider):
                 timestamp = datetime.fromisoformat(tx_info["time"].replace("Z", "+00:00"))
             except (ValueError, AttributeError):
                 pass
+
+        tx_value = sum(out.value for out in outputs)
+        logger.info(f"[Blockchair] ✓ UTXO transaction parsed - {len(inputs)} inputs, {len(outputs)} outputs, value: {tx_value:.8f} {config.symbol}")
 
         return Transaction(
             tx_hash=tx_hash,
@@ -329,6 +367,8 @@ class BlockchairProvider(BlockchainProvider):
         tx_info: dict[str, Any],
     ) -> Transaction:
         """Parse Account-based transaction."""
+        logger.debug(f"[Blockchair] Parsing Account-based transaction - hash: {tx_hash[:16]}...")
+        
         timestamp = None
         if tx_info.get("time"):
             try:
@@ -337,8 +377,10 @@ class BlockchairProvider(BlockchainProvider):
                 pass
 
         # Parse internal transactions if available
+        internal_txs_data = raw_tx.get("calls", [])
+        logger.debug(f"[Blockchair] Found {len(internal_txs_data)} internal transactions")
         internal_txs = []
-        for idx, itx in enumerate(raw_tx.get("calls", [])):
+        for idx, itx in enumerate(internal_txs_data):
             internal_txs.append(
                 InternalTransaction(
                     from_address=itx.get("sender", ""),
@@ -355,6 +397,9 @@ class BlockchairProvider(BlockchainProvider):
         value_divisor = Decimal("1e18")
         if chain in ("tron",):
             value_divisor = Decimal("1e6")
+
+        tx_value = Decimal(str(tx_info.get("value", 0))) / value_divisor
+        logger.info(f"[Blockchair] ✓ Account transaction parsed - from: {tx_info.get('sender', '')[:16]}... to: {tx_info.get('recipient', '')[:16]}... value: {tx_value:.8f}, internal txs: {len(internal_txs)}")
 
         return Transaction(
             tx_hash=tx_hash,
@@ -380,9 +425,11 @@ class BlockchairProvider(BlockchainProvider):
         self, chain: str, tx_hash: str
     ) -> list[tuple[str, str]]:
         """Get input transactions for UTXO chains."""
+        logger.debug(f"[Blockchair] Getting transaction inputs for {tx_hash[:16]}... on {chain}")
         config = self._get_chain_config(chain)
         
         if config.chain_type != ChainType.UTXO:
+            logger.debug(f"[Blockchair] Skipping inputs - {chain} is not a UTXO chain")
             return []
 
         tx = await self.get_transaction(chain, tx_hash)
@@ -390,27 +437,33 @@ class BlockchairProvider(BlockchainProvider):
         for inp in tx.inputs:
             if inp.address and inp.tx_hash:
                 result.append((inp.address, inp.tx_hash))
+        logger.debug(f"[Blockchair] Found {len(result)} input transactions")
         return result
 
     async def get_internal_transactions(
         self, chain: str, tx_hash: str
     ) -> list[InternalTransaction]:
         """Get internal transactions for EVM chains."""
+        logger.debug(f"[Blockchair] Getting internal transactions for {tx_hash[:16]}... on {chain}")
         config = self._get_chain_config(chain)
         
         if not config.has_internal_txs:
+            logger.debug(f"[Blockchair] Skipping internal txs - {chain} does not support them")
             return []
 
         tx = await self.get_transaction(chain, tx_hash)
+        logger.debug(f"[Blockchair] Found {len(tx.internal_transactions)} internal transactions")
         return tx.internal_transactions
 
     async def get_address_metadata(
         self, chain: str, address: str
     ) -> AddressMetadata:
         """Fetch metadata for a blockchain address."""
+        logger.info(f"[Blockchair] Fetching address metadata for {address[:16]}... on {chain}")
         config = self._get_chain_config(chain)
         
         path = f"{config.slug}/dashboards/address/{address}"
+        logger.debug(f"[Blockchair] API path: {path}")
         data = await self._request("GET", path)
 
         addr_data = data.get("data", {})
@@ -457,6 +510,8 @@ class BlockchairProvider(BlockchainProvider):
             except (ValueError, AttributeError):
                 pass
 
+        logger.info(f"[Blockchair] ✓ Address metadata retrieved - balance: {balance}, tx_count: {address_obj.get('transaction_count', 0)}, tags: {len(tags)}")
+        
         return AddressMetadata(
             address=address,
             chain=chain,
@@ -588,10 +643,12 @@ class BlockchairProvider(BlockchainProvider):
         Returns:
             Dictionary with health status information
         """
+        logger.info("[Blockchair] Performing health check...")
         try:
             # Try a simple request to check API availability
             response = await self._request("GET", "stats")
             
+            logger.info(f"[Blockchair] ✓ Health check passed - Circuit breaker: {self._circuit_breaker.state}, Requests: {self._request_count}")
             return {
                 "status": "healthy",
                 "provider": self.name,
@@ -600,6 +657,7 @@ class BlockchairProvider(BlockchainProvider):
                 "api_responsive": True,
             }
         except Exception as e:
+            logger.error(f"[Blockchair] ✗ Health check failed - Error: {str(e)}")
             return {
                 "status": "unhealthy",
                 "provider": self.name,

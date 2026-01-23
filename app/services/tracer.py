@@ -120,11 +120,13 @@ class TransactionTracerService:
         """
         chain = chain.lower()
         
+        logger.info(f"[Tracer] Starting risk analysis for tx {tx_hash[:16]}... on {chain} (depth: {depth})")
+        
         # Check cache for existing result
         cache_key = self._cache.risk_key(chain, tx_hash, depth)
         cached_result = await self._cache.get(cache_key)
         if cached_result:
-            logger.info(f"Cache hit for risk report: {tx_hash}")
+            logger.info(f"[Tracer] ✓ Cache hit for risk report: {tx_hash[:16]}...")
             return RiskReport.model_validate(cached_result)
 
         state = TraceState()
@@ -135,16 +137,21 @@ class TransactionTracerService:
 
         # Fetch initial transaction
         try:
+            logger.debug(f"[Tracer] Fetching initial transaction {tx_hash[:16]}...")
             initial_tx = await self._fetch_transaction_cached(chain, tx_hash, state)
+            logger.info(f"[Tracer] ✓ Initial transaction fetched - Type: {initial_tx.chain_type.value}")
         except TransactionNotFoundError:
+            logger.error(f"[Tracer] ✗ Transaction not found: {tx_hash[:16]}...")
             raise
         except Exception as e:
-            logger.error(f"Failed to fetch transaction {tx_hash}: {e}")
+            logger.error(f"[Tracer] ✗ Failed to fetch transaction {tx_hash[:16]}...: {e}")
             raise InvalidTransactionError(tx_hash, chain) from e
 
         # Initialize BFS priority queue
         queue: list[TraceNode] = []  # heapq
         source_addresses = initial_tx.get_source_addresses()
+        
+        logger.debug(f"[Tracer] Found {len(source_addresses)} source addresses")
 
         for address in source_addresses:
             if address:
@@ -158,12 +165,17 @@ class TransactionTracerService:
                 heapq.heappush(queue, node)
 
         # Execute BFS
+        logger.info(f"[Tracer] Starting BFS traversal - Queue size: {len(queue)}, Max depth: {depth}")
         await self._bfs_trace(chain, chain_config, queue, depth, state)
 
         # Calculate clustering coefficient
         clustering = self._calculate_clustering_coefficient(state)
+        
+        logger.info(f"[Tracer] BFS complete - Addresses: {len(state.visited_addresses)}, Transactions: {len(state.visited_transactions)}, API calls: {state.api_calls}")
+        logger.debug(f"[Tracer] Flagged entities: {len(state.flagged_entities)}, Circular paths: {len(state.circular_paths)}, Clustering: {clustering:.3f}")
 
         # Calculate advanced risk score with all features
+        logger.debug(f"[Tracer] Calculating advanced risk score...")
         risk_score = self._risk_scorer.calculate_advanced_score(
             flagged_entities=state.flagged_entities,
             address_metadata=state.address_metadata_cache,
@@ -191,6 +203,8 @@ class TransactionTracerService:
 
         # Cache the result
         await self._cache.set(cache_key, report.model_dump(), ttl=86400)
+        
+        logger.info(f"[Tracer] ✓ Analysis complete - Risk: {risk_score.total_score:.1f} ({risk_score.severity}), Flagged: {len(state.flagged_entities)}")
 
         return report
 
@@ -210,6 +224,7 @@ class TransactionTracerService:
         - Tracks graph structure for clustering analysis
         """
         addresses_processed = 0
+        logger.debug(f"[Tracer BFS] Starting traversal - Initial queue size: {len(queue)}")
         
         while queue:
             # Safety check: stop if we've processed too many addresses
@@ -241,6 +256,8 @@ class TransactionTracerService:
 
             if not current_batch:
                 continue
+            
+            logger.debug(f"[Tracer BFS] Processing batch at depth {current_depth} - {len(current_batch)} nodes")
 
             # Process batch concurrently
             tasks = [
@@ -274,6 +291,8 @@ class TransactionTracerService:
     ) -> list[TraceNode]:
         """Process a single trace node."""
         new_nodes: list[TraceNode] = []
+        
+        logger.debug(f"[Tracer Node] Processing {node.address[:16]}... at depth {node.depth}")
 
         async with self._semaphore:
             # Fetch address metadata
@@ -283,6 +302,7 @@ class TransactionTracerService:
 
             # Check if address should be flagged
             if metadata.tags:
+                logger.debug(f"[Tracer Node] Address {node.address[:16]}... has tags: {[tag.value for tag in metadata.tags]}")
                 contribution = self._risk_scorer.calculate_entity_contribution(
                     metadata.tags, node.depth
                 )
@@ -295,9 +315,11 @@ class TransactionTracerService:
                     contribution_score=contribution,
                 )
                 state.flagged_entities.append(flagged)
+                logger.info(f"[Tracer Node] ⚠ Flagged entity found: {node.address[:16]}... (tags: {len(metadata.tags)}, contribution: {contribution:.2f})")
 
                 # Skip further tracing for definitive tags
                 if set(metadata.tags) & CACHEABLE_DEFINITIVE_TAGS:
+                    logger.debug(f"[Tracer Node] Skipping further tracing - definitive tag found")
                     return new_nodes
 
             # Stop if max depth reached
@@ -513,9 +535,11 @@ class TransactionTracerService:
         # Check cache
         cached = await self._cache.get(cache_key)
         if cached:
+            logger.debug(f"[Tracer Cache] Transaction cache hit: {tx_hash[:16]}...")
             return Transaction.model_validate(cached)
 
         # Fetch from provider
+        logger.debug(f"[Tracer Cache] Transaction cache miss - fetching from provider: {tx_hash[:16]}...")
         state.api_calls += 1
         tx = await self._provider.get_transaction(chain, tx_hash)
         
@@ -536,14 +560,20 @@ class TransactionTracerService:
 
         # Check in-memory cache first
         if address_lower in state.address_metadata_cache:
+            logger.debug(f"[Tracer Cache] Address metadata in-memory cache hit: {address[:16]}...")
             return state.address_metadata_cache[address_lower]
 
         # Check persistent cache
         cached = await self._cache.get(cache_key)
         if cached:
+            logger.debug(f"[Tracer Cache] Address metadata persistent cache hit: {address[:16]}...")
             metadata = AddressMetadata.model_validate(cached)
             state.address_metadata_cache[address_lower] = metadata
             return metadata
+        
+        # Fetch from provider
+        logger.debug(f"[Tracer Cache] Address metadata cache miss - fetching from provider: {address[:16]}...")
+        state.api_calls += 1
 
         # Fetch from provider
         state.api_calls += 1
