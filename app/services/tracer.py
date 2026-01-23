@@ -56,12 +56,17 @@ class TransactionTracerService:
     to high-risk entities and computing a quantitative risk score.
     """
 
+    # Default limits to prevent runaway traces
+    DEFAULT_MAX_ADDRESSES = 1000
+    DEFAULT_MAX_CONCURRENT_REQUESTS = 5
+
     def __init__(
         self,
         provider: BlockchainProvider,
         cache: CacheBackend,
         risk_scorer: RiskScorerService,
-        max_concurrent_requests: int = 5,
+        max_concurrent_requests: int = DEFAULT_MAX_CONCURRENT_REQUESTS,
+        max_addresses_per_trace: int = DEFAULT_MAX_ADDRESSES,
     ) -> None:
         """
         Initialize the tracer service.
@@ -71,11 +76,13 @@ class TransactionTracerService:
             cache: Cache backend for optimization.
             risk_scorer: Risk scoring service.
             max_concurrent_requests: Maximum concurrent API requests.
+            max_addresses_per_trace: Maximum addresses to visit during BFS (safety limit).
         """
         self._provider = provider
         self._cache = cache
         self._risk_scorer = risk_scorer
         self._semaphore = asyncio.Semaphore(max_concurrent_requests)
+        self._max_addresses = max_addresses_per_trace
 
     async def trace_transaction_risk(
         self,
@@ -176,13 +183,31 @@ class TransactionTracerService:
         max_depth: int,
         state: TraceState,
     ) -> None:
-        """Execute BFS traversal for transaction tracing."""
+        """Execute BFS traversal for transaction tracing.
+        
+        Includes safety limits to prevent runaway traces on transactions
+        with many inputs (e.g., exchange consolidations).
+        """
+        addresses_processed = 0
+        
         while queue:
+            # Safety check: stop if we've processed too many addresses
+            if addresses_processed >= self._max_addresses:
+                logger.warning(
+                    f"BFS trace stopped: reached max address limit ({self._max_addresses}). "
+                    f"Visited {len(state.visited_addresses)} addresses."
+                )
+                break
+            
             # Process nodes at current depth in parallel
             current_batch: list[TraceNode] = []
             current_depth = queue[0].depth if queue else 0
 
             while queue and queue[0].depth == current_depth:
+                # Check limit before adding to batch
+                if addresses_processed >= self._max_addresses:
+                    break
+                    
                 node = queue.popleft()
                 
                 # Skip if already visited
@@ -192,6 +217,7 @@ class TransactionTracerService:
                     
                 state.visited_addresses.add(address_key)
                 current_batch.append(node)
+                addresses_processed += 1
 
             if not current_batch:
                 continue

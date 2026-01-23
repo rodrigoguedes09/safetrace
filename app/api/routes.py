@@ -167,7 +167,29 @@ async def download_certificate(
     settings: Annotated[Settings, Depends(get_settings)],
 ) -> FileResponse:
     """Download a generated compliance certificate PDF."""
-    file_path = Path(settings.pdf_output_dir) / filename
+    import re
+    
+    # Validação de segurança: apenas nomes de arquivo válidos (sem path traversal)
+    # Aceita apenas: letras, números, hífens, underscores, e uma extensão .pdf
+    if not re.match(r'^[a-zA-Z0-9_\-]+\.pdf$', filename):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid filename format",
+        )
+    
+    # Construir path de forma segura
+    base_dir = Path(settings.pdf_output_dir).resolve()
+    file_path = (base_dir / filename).resolve()
+    
+    # Verificação adicional: garantir que o arquivo está dentro do diretório permitido
+    try:
+        file_path.relative_to(base_dir)
+    except ValueError:
+        # O arquivo está fora do diretório base (tentativa de path traversal)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid filename",
+        )
     
     if not file_path.exists():
         raise HTTPException(

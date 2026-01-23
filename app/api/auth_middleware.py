@@ -88,25 +88,3 @@ async def check_rate_limit(user: User, api_key: APIKey) -> None:
 
     # Increment usage
     await rate_limit_service.increment_usage(user.id)
-
-
-def get_optional_user() -> Optional[tuple[User, APIKey]]:
-    """
-    Dependency that optionally gets the current user.
-    Returns None if no authentication is provided.
-    Useful for endpoints that work both authenticated and unauthenticated.
-    """
-
-    async def optional_user_dependency(
-        authorization: Optional[HTTPAuthorizationCredentials] = Depends(security),
-        x_api_key: Optional[str] = Header(None, alias="X-API-Key"),
-    ) -> Optional[tuple[User, APIKey]]:
-        if not authorization and not x_api_key:
-            return None
-
-        try:
-            return await get_current_user(authorization, x_api_key)
-        except HTTPException:
-            return None
-
-    return optional_user_dependency

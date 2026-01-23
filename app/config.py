@@ -63,6 +63,26 @@ class Settings(BaseSettings):
         description="PDF output directory"
     )
 
+    # JWT Configuration
+    jwt_secret_key: str = Field(
+        default="",
+        description="Secret key for JWT token signing (REQUIRED in production)"
+    )
+    jwt_algorithm: str = "HS256"
+    jwt_expire_minutes: int = 30 * 24 * 60  # 30 days
+
+    # CORS Configuration
+    allowed_origins: str = Field(
+        default="",
+        description="Comma-separated list of allowed origins for CORS"
+    )
+
+    # BFS Tracing Limits
+    max_addresses_per_trace: int = Field(
+        default=1000,
+        description="Maximum addresses to visit during BFS tracing"
+    )
+
     @field_validator("postgres_dsn")
     @classmethod
     def set_postgres_dsn(cls, v: str, info) -> str:

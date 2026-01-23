@@ -68,17 +68,27 @@ def create_app() -> FastAPI:
         openapi_url="/openapi.json",
     )
 
-    # CORS middleware
+    # CORS middleware - restrito a origens configuradas
+    allowed_origins = ["*"]  # Default para desenvolvimento
+    if settings.allowed_origins:
+        allowed_origins = [origin.strip() for origin in settings.allowed_origins.split(",") if origin.strip()]
+    
+    # Em produção, não permitir credenciais com wildcard
+    allow_credentials = True
+    if "*" in allowed_origins and not settings.debug:
+        logger.warning("CORS: Using wildcard origins in production is not recommended")
+        allow_credentials = False  # Desabilita credentials com wildcard
+    
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
+        allow_origins=allowed_origins,
+        allow_credentials=allow_credentials,
+        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        allow_headers=["Authorization", "X-API-Key", "Content-Type", "Accept"],
     )
 
-    # Mount static files
-    static_dir = Path(__file__).parent / "static"
+    # Mount static files from frontend directory
+    static_dir = Path(__file__).parent.parent / "frontend" / "static"
     if static_dir.exists():
         app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
@@ -87,7 +97,11 @@ def create_app() -> FastAPI:
     app.include_router(auth_router)
     app.include_router(auth_jwt_router)  # Alternativa JWT (mais simples)
     app.include_router(admin_router)
-    app.include_router(debug_router)  # Debug endpoints
+    
+    # Debug endpoints - apenas em modo debug
+    if settings.debug:
+        app.include_router(debug_router)
+        logger.warning("Debug endpoints enabled - do not use in production!")
     
     # Include frontend routes (must be last to avoid conflicts)
     app.include_router(frontend_router)

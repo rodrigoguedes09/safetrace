@@ -1,5 +1,6 @@
 """Audit logging service for tracking user actions."""
 
+import json
 import logging
 from datetime import datetime
 from enum import Enum
@@ -7,6 +8,15 @@ from typing import Any, Optional
 from uuid import UUID
 
 logger = logging.getLogger(__name__)
+
+
+# Maximum size for details JSONB (in characters)
+MAX_DETAILS_SIZE = 10000
+# Allowed keys in details dict (whitelist for security)
+ALLOWED_DETAIL_KEYS = {
+    "endpoint", "method", "tx_hash", "chain", "depth", "risk_score", 
+    "error", "message", "status_code", "api_calls_used", "addresses_analyzed"
+}
 
 
 class AuditAction(str, Enum):
@@ -40,6 +50,65 @@ class AuditLogger:
         """Initialize audit logger with optional database pool."""
         self.db_pool = db_pool
 
+    def _sanitize_details(self, details: Optional[dict[str, Any]]) -> dict[str, Any]:
+        """
+        Sanitize details dict to prevent injection and limit size.
+        
+        - Only allows whitelisted keys
+        - Converts all values to safe string representations
+        - Truncates to max size
+        """
+        if not details:
+            return {}
+        
+        if not isinstance(details, dict):
+            logger.warning(f"Invalid details type: {type(details)}, expected dict")
+            return {"_invalid": "details was not a dict"}
+        
+        sanitized = {}
+        for key, value in details.items():
+            # Only allow whitelisted keys (or log unknown keys with prefix)
+            if key in ALLOWED_DETAIL_KEYS:
+                sanitized[key] = self._sanitize_value(value)
+            else:
+                # Log unknown keys with a prefix for debugging
+                sanitized[f"_extra_{key[:50]}"] = self._sanitize_value(value)
+        
+        # Check total size
+        try:
+            serialized = json.dumps(sanitized)
+            if len(serialized) > MAX_DETAILS_SIZE:
+                logger.warning(f"Details truncated from {len(serialized)} to {MAX_DETAILS_SIZE}")
+                sanitized = {"_truncated": True, "_message": "Details too large"}
+        except (TypeError, ValueError) as e:
+            logger.error(f"Failed to serialize details: {e}")
+            sanitized = {"_error": "Failed to serialize details"}
+        
+        return sanitized
+
+    def _sanitize_value(self, value: Any, max_str_len: int = 500) -> Any:
+        """Sanitize a single value to safe types."""
+        if value is None:
+            return None
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, (int, float)):
+            return value
+        if isinstance(value, str):
+            # Truncate long strings and remove control characters
+            safe_str = value[:max_str_len]
+            # Remove null bytes and other control chars
+            safe_str = ''.join(c for c in safe_str if ord(c) >= 32 or c in '\n\r\t')
+            return safe_str
+        if isinstance(value, (list, tuple)):
+            # Limit list size and sanitize each item
+            return [self._sanitize_value(v, max_str_len) for v in value[:50]]
+        if isinstance(value, dict):
+            # Recursively sanitize nested dicts (limited depth)
+            return {str(k)[:100]: self._sanitize_value(v, max_str_len) for k, v in list(value.items())[:20]}
+        # Convert unknown types to string representation
+        return str(value)[:max_str_len]
+
     async def log(
         self,
         action: AuditAction,
@@ -62,12 +131,15 @@ class AuditLogger:
         """
         timestamp = datetime.utcnow()
         
+        # Sanitize details before storing
+        sanitized_details = self._sanitize_details(details)
+        
         log_entry = {
             "timestamp": timestamp.isoformat(),
             "action": action.value,
             "user_id": str(user_id) if user_id else None,
             "api_key_id": str(api_key_id) if api_key_id else None,
-            "details": details or {},
+            "details": sanitized_details,
             "ip_address": ip_address,
             "user_agent": user_agent,
         }

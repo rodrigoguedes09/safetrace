@@ -9,7 +9,7 @@ from app.constants import SUPPORTED_CHAINS
 router = APIRouter(tags=["Frontend"])
 
 # Initialize templates
-templates = Jinja2Templates(directory="app/templates")
+templates = Jinja2Templates(directory="frontend/templates")
 
 
 @router.get("/", response_class=HTMLResponse)

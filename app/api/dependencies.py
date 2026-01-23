@@ -104,40 +104,72 @@ async def get_tracer_service(
     cache: Annotated[CacheBackend, Depends(get_cache_backend)],
     provider: Annotated[BlockchainProvider, Depends(get_blockchain_provider)],
     risk_scorer: Annotated[RiskScorerService, Depends(get_risk_scorer)],
+    settings: Annotated[Settings, Depends(get_settings)],
 ) -> TransactionTracerService:
     """Get transaction tracer service instance."""
     return TransactionTracerService(
         provider=provider,
         cache=cache,
         risk_scorer=risk_scorer,
+        max_addresses_per_trace=settings.max_addresses_per_trace,
     )
 
 
 def get_auth_service() -> AuthService:
-    """Get authentication service instance."""
+    """Get authentication service instance.
+    
+    Raises:
+        RuntimeError: If database pool is not initialized.
+    """
     global _auth_service, _db_pool
     
-    if _auth_service is None and _db_pool is not None:
+    if _db_pool is None:
+        raise RuntimeError(
+            "Database pool not initialized. "
+            "Ensure the application has started correctly."
+        )
+    
+    if _auth_service is None:
         _auth_service = AuthService(_db_pool)
     
     return _auth_service
 
 
 def get_rate_limit_service() -> RateLimitService:
-    """Get rate limiting service instance."""
+    """Get rate limiting service instance.
+    
+    Raises:
+        RuntimeError: If cache backend is not initialized.
+    """
     global _rate_limit_service, _cache_instance
     
-    if _rate_limit_service is None and _cache_instance is not None:
+    if _cache_instance is None:
+        raise RuntimeError(
+            "Cache backend not initialized. "
+            "Ensure the application has started correctly."
+        )
+    
+    if _rate_limit_service is None:
         _rate_limit_service = RateLimitService(_cache_instance)
     
     return _rate_limit_service
 
 
 def get_history_service() -> AnalysisHistoryService:
-    """Get analysis history service instance."""
+    """Get analysis history service instance.
+    
+    Raises:
+        RuntimeError: If database pool is not initialized.
+    """
     global _history_service, _db_pool
     
-    if _history_service is None and _db_pool is not None:
+    if _db_pool is None:
+        raise RuntimeError(
+            "Database pool not initialized. "
+            "Ensure the application has started correctly."
+        )
+    
+    if _history_service is None:
         _history_service = AnalysisHistoryService(_db_pool)
     
     return _history_service

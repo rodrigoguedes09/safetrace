@@ -104,8 +104,8 @@ async def get_current_user_jwt(credentials: HTTPAuthorizationCredentials = Depen
 async def register(user_data: UserRegister):
     """Registrar novo usuário."""
     try:
-        from app.config.settings import get_settings
-        from app.db.postgresql import get_db_pool
+        from app.config import get_settings
+        from app.api.dependencies import get_db_pool
         from app.services.auth_service import AuthService
         from app.models.auth import UserCreate
         
@@ -162,8 +162,8 @@ async def register(user_data: UserRegister):
 async def login(user_data: UserLogin):
     """Login de usuário."""
     try:
-        from app.config.settings import get_settings
-        from app.db.postgresql import get_db_pool
+        from app.config import get_settings
+        from app.api.dependencies import get_db_pool
         from app.services.auth_service import AuthService
         
         # Get database pool and create service
@@ -222,8 +222,8 @@ async def login(user_data: UserLogin):
 async def get_me(current_user: TokenData = Depends(get_current_user_jwt)):
     """Obter dados do usuário atual."""
     try:
-        from app.config.settings import get_settings
-        from app.db.postgresql import get_db_pool
+        from app.config import get_settings
+        from app.api.dependencies import get_db_pool
         from app.services.auth_service import AuthService
         from uuid import UUID
         
