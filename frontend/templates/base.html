@@ -88,14 +88,22 @@
                 </a>
                 
                 <div class="hidden md:flex items-center space-x-8">
-                    <a href="/#features" class="hover:text-primary-400 transition">Features</a>
+                    <a href="/" class="hover:text-primary-400 transition">Home</a>
+                    <a href="/analyze" class="hover:text-primary-400 transition">Analyze</a>
                     <a href="/pricing" class="hover:text-primary-400 transition">Pricing</a>
                     <a href="/documentation" class="hover:text-primary-400 transition">Docs</a>
                 </div>
                 
                 <div class="flex items-center space-x-4">
                     <button onclick="openAuthModal('login')" class="hidden md:block hover:text-primary-400 transition" id="nav-login-btn">Login</button>
-                    <a href="/analyze" class="btn-primary text-sm" id="nav-cta-btn">Start Analysis</a>
+                    <a href="/analyze" class="btn-primary text-sm hidden md:block" id="nav-cta-btn">Start Analysis</a>
+                    
+                    <!-- Mobile Menu Button -->
+                    <button onclick="toggleMobileMenu()" class="md:hidden text-white">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                        </svg>
+                    </button>
                     
                     <!-- User Dropdown -->
                     <div class="hidden relative" id="nav-user-menu">
@@ -131,6 +139,24 @@
                             </button>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-gray-900/95 backdrop-blur-sm border-t border-gray-700">
+            <div class="px-4 py-4 space-y-3">
+                <a href="/" class="block px-4 py-2 rounded-lg hover:bg-gray-800 transition">Home</a>
+                <a href="/analyze" class="block px-4 py-2 rounded-lg hover:bg-gray-800 transition">Analyze</a>
+                <a href="/pricing" class="block px-4 py-2 rounded-lg hover:bg-gray-800 transition">Pricing</a>
+                <a href="/documentation" class="block px-4 py-2 rounded-lg hover:bg-gray-800 transition">Docs</a>
+                <div id="mobile-auth-section" class="pt-2 border-t border-gray-700">
+                    <button onclick="openAuthModal('login')" class="block w-full text-left px-4 py-2 rounded-lg hover:bg-gray-800 transition">Login</button>
+                </div>
+                <div id="mobile-user-section" class="hidden pt-2 border-t border-gray-700">
+                    <a href="/dashboard" class="block px-4 py-2 rounded-lg hover:bg-gray-800 transition">Dashboard</a>
+                    <a href="/settings" class="block px-4 py-2 rounded-lg hover:bg-gray-800 transition">Settings</a>
+                    <button onclick="logout()" class="block w-full text-left px-4 py-2 rounded-lg hover:bg-red-500/10 text-red-400 transition">Logout</button>
                 </div>
             </div>
         </div>

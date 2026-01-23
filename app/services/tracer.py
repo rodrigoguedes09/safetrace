@@ -435,6 +435,72 @@ class TransactionTracerService:
 
         return new_nodes
 
+    def _calculate_clustering_coefficient(self, state: TraceState) -> float:
+        """Calculate graph clustering coefficient.
+        
+        Measures how interconnected the addresses are (0 = no connections, 1 = fully connected).
+        High clustering can indicate mixer networks.
+        
+        Args:
+            state: Current trace state with address connections
+            
+        Returns:
+            Clustering coefficient between 0.0 and 1.0
+        """
+        if not state.address_connections:
+            return 0.0
+        
+        # Count triangles and possible triangles
+        triangles = 0
+        possible_triangles = 0
+        
+        for addr, neighbors in state.address_connections.items():
+            if len(neighbors) < 2:
+                continue
+                
+            # For each pair of neighbors, check if they're connected
+            neighbor_list = list(neighbors)
+            for i in range(len(neighbor_list)):
+                for j in range(i + 1, len(neighbor_list)):
+                    possible_triangles += 1
+                    # Check if neighbors are connected to each other
+                    n1 = neighbor_list[i]
+                    n2 = neighbor_list[j]
+                    if n1 in state.address_connections:
+                        if n2 in state.address_connections[n1]:
+                            triangles += 1
+        
+        if possible_triangles == 0:
+            return 0.0
+        
+        return triangles / possible_triangles
+
+    def _detect_circular_path(
+        self, 
+        current_address: str, 
+        path: list[str], 
+        state: TraceState
+    ) -> bool:
+        """Detect if current path forms a circle (money cycling).
+        
+        Args:
+            current_address: Address being processed
+            path: Current path of addresses
+            state: Trace state to record circular paths
+            
+        Returns:
+            True if circular path detected
+        """
+        if current_address in path:
+            # Found a cycle
+            cycle_start = path.index(current_address)
+            circular_path = tuple(path[cycle_start:] + [current_address])
+            if circular_path not in state.circular_paths:
+                state.circular_paths.append(circular_path)
+                logger.info(f"Circular path detected: {' -> '.join(circular_path)}")
+            return True
+        return False
+
     async def _fetch_transaction_cached(
         self,
         chain: str,

@@ -192,6 +192,16 @@ function toggleUserDropdown() {
 }
 
 /**
+ * Toggle mobile menu
+ */
+function toggleMobileMenu() {
+    const mobileMenu = document.getElementById('mobile-menu');
+    if (mobileMenu) {
+        mobileMenu.classList.toggle('hidden');
+    }
+}
+
+/**
  * Close dropdown when clicking outside
  */
 document.addEventListener('click', function(event) {

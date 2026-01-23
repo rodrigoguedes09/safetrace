@@ -58,6 +58,8 @@ function updateNavigation() {
     const loginBtn = document.getElementById('nav-login-btn');
     const ctaBtn = document.getElementById('nav-cta-btn');
     const userMenu = document.getElementById('nav-user-menu');
+    const mobileAuthSection = document.getElementById('mobile-auth-section');
+    const mobileUserSection = document.getElementById('mobile-user-section');
     
     if (isLoggedIn()) {
         // User is logged in - hide login button, show user menu
@@ -70,6 +72,9 @@ function updateNavigation() {
             userMenu.classList.remove('hidden');
             userMenu.classList.add('flex');
         }
+        // Mobile menu
+        if (mobileAuthSection) mobileAuthSection.classList.add('hidden');
+        if (mobileUserSection) mobileUserSection.classList.remove('hidden');
     } else {
         // User is not logged in - show login button, hide user menu
         if (loginBtn) loginBtn.classList.remove('hidden');
@@ -81,6 +86,9 @@ function updateNavigation() {
             userMenu.classList.add('hidden');
             userMenu.classList.remove('flex');
         }
+        // Mobile menu
+        if (mobileAuthSection) mobileAuthSection.classList.remove('hidden');
+        if (mobileUserSection) mobileUserSection.classList.add('hidden');
     }
 }
 
