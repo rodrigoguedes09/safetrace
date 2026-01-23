@@ -181,5 +181,27 @@ function setLoading(buttonId, loading) {
     }
 }
 
+/**
+ * Toggle user dropdown menu
+ */
+function toggleUserDropdown() {
+    const dropdown = document.getElementById('user-dropdown');
+    if (dropdown) {
+        dropdown.classList.toggle('hidden');
+    }
+}
+
+/**
+ * Close dropdown when clicking outside
+ */
+document.addEventListener('click', function(event) {
+    const dropdown = document.getElementById('user-dropdown');
+    const userMenu = document.getElementById('nav-user-menu');
+    
+    if (dropdown && userMenu && !userMenu.contains(event.target)) {
+        dropdown.classList.add('hidden');
+    }
+});
+
 // Initialize on load
 document.addEventListener('DOMContentLoaded', initApp);

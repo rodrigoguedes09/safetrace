@@ -35,9 +35,6 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
                     </svg>
                 </a>
-                <a href="#how-it-works" class="btn-secondary text-lg px-8 py-4">
-                    See How It Works
-                </a>
             </div>
             
             <!-- Trust Badges -->
@@ -62,13 +59,6 @@
                 </div>
             </div>
         </div>
-    </div>
-    
-    <!-- Scroll Indicator -->
-    <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-        <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
-        </svg>
     </div>
 </section>
 
@@ -184,52 +174,38 @@
             </p>
         </div>
         
-        <div class="grid md:grid-cols-3 gap-8">
+        <div class="grid md:grid-cols-3 gap-12">
             <!-- Step 1 -->
-            <div class="text-center">
-                <div class="w-16 h-16 bg-primary-500 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl font-bold">
+            <div class="glass-card rounded-2xl p-8 text-center hover:border-primary-500/50 transition-all duration-300">
+                <div class="w-20 h-20 bg-primary-500 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl font-bold shadow-lg">
                     1
                 </div>
-                <h3 class="text-xl font-semibold mb-3">Submit Transaction</h3>
-                <p class="text-gray-400">
+                <h3 class="text-2xl font-semibold mb-4">Submit Transaction</h3>
+                <p class="text-gray-300 text-lg leading-relaxed">
                     Enter the transaction hash and select the blockchain network. 
                     Choose the trace depth (1-10 hops).
                 </p>
             </div>
             
-            <!-- Arrow -->
-            <div class="hidden md:flex items-center justify-center">
-                <svg class="w-12 h-12 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
-                </svg>
-            </div>
-            
             <!-- Step 2 -->
-            <div class="text-center md:col-start-2">
-                <div class="w-16 h-16 bg-primary-500 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl font-bold">
+            <div class="glass-card rounded-2xl p-8 text-center hover:border-primary-500/50 transition-all duration-300">
+                <div class="w-20 h-20 bg-primary-500 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl font-bold shadow-lg">
                     2
                 </div>
-                <h3 class="text-xl font-semibold mb-3">AI Analysis</h3>
-                <p class="text-gray-400">
+                <h3 class="text-2xl font-semibold mb-4">AI Analysis</h3>
+                <p class="text-gray-300 text-lg leading-relaxed">
                     Our engine traces all input transactions, analyzes entity proximity, 
                     and calculates the risk score.
                 </p>
             </div>
             
-            <!-- Arrow -->
-            <div class="hidden md:flex items-center justify-center">
-                <svg class="w-12 h-12 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
-                </svg>
-            </div>
-            
             <!-- Step 3 -->
-            <div class="text-center md:col-start-3">
-                <div class="w-16 h-16 bg-primary-500 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl font-bold">
+            <div class="glass-card rounded-2xl p-8 text-center hover:border-primary-500/50 transition-all duration-300">
+                <div class="w-20 h-20 bg-primary-500 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl font-bold shadow-lg">
                     3
                 </div>
-                <h3 class="text-xl font-semibold mb-3">Get Report</h3>
-                <p class="text-gray-400">
+                <h3 class="text-2xl font-semibold mb-4">Get Report</h3>
+                <p class="text-gray-300 text-lg leading-relaxed">
                     Receive detailed risk assessment with PDF compliance certificate. 
                     Ready for regulatory submissions.
                 </p>
@@ -356,25 +332,4 @@
     </div>
 </section>
 
-<!-- CTA Section -->
-<section class="py-20 relative">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <div class="glass-card rounded-3xl p-12 glow">
-            <h2 class="text-3xl md:text-4xl font-bold mb-4">
-                Ready to Ensure Compliance?
-            </h2>
-            <p class="text-xl text-gray-400 mb-8">
-                Start with a free analysis. No credit card required.
-            </p>
-            <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <a href="/analyze" class="btn-primary text-lg px-8 py-4">
-                    Start Free Analysis
-                </a>
-                <a href="/pricing" class="btn-secondary text-lg px-8 py-4">
-                    View Pricing
-                </a>
-            </div>
-        </div>
-    </div>
-</section>
 {% endblock %}
