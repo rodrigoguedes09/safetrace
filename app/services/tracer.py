@@ -204,7 +204,7 @@ class TransactionTracerService:
         # Cache the result
         await self._cache.set(cache_key, report.model_dump(), ttl=86400)
         
-        logger.info(f"[Tracer] ✓ Analysis complete - Risk: {risk_score.total_score:.1f} ({risk_score.severity}), Flagged: {len(state.flagged_entities)}")
+        logger.info(f"[Tracer] ✓ Analysis complete - Risk: {risk_score.score} ({risk_score.level.value}), Flagged: {len(state.flagged_entities)}")
 
         return report
 
